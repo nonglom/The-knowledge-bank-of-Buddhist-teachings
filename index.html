@@ -1,0 +1,3496 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบคลังความรู้ - แผนการจัดการเรียนรู้</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Firebase SDK v11+ -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js';
+        import { getDatabase, ref, set, get, push, onValue, remove, update } from 'https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js';
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB80mQRGlH1r7KQfVkuK3TWPpl7zR3Ygzs",
+            authDomain: "knowledge-6755e.firebaseapp.com",
+            databaseURL: "https://knowledge-6755e-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "knowledge-6755e",
+            storageBucket: "knowledge-6755e.firebasestorage.app",
+            messagingSenderId: "385204609992",
+            appId: "1:385204609992:web:960a726cf4a4ea6d2bd6fd"
+        };
+
+        try {
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+            
+            // Make Firebase functions available globally
+            window.firebaseDB = {
+                database,
+                ref,
+                set,
+                get,
+                push,
+                onValue,
+                remove,
+                update
+            };
+            
+            window.firebaseInitialized = true;
+            console.log('Firebase initialized successfully');
+            
+            // Initialize app after Firebase is ready
+            if (window.initializeFirebaseApp) {
+                window.initializeFirebaseApp();
+            }
+        } catch (error) {
+            console.error('Firebase initialization failed:', error);
+            window.firebaseInitialized = false;
+            
+            // Initialize with sample data as fallback
+            if (window.initializeWithSampleData) {
+                window.initializeWithSampleData();
+            }
+        }
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'thai': ['Noto Sans Thai', 'sans-serif']
+                    },
+                    colors: {
+                        'pastel-pink': {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f9a8d4',
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-thai">
+    <!-- Top Banner Section -->
+    <div class="bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div class="flex justify-center">
+                <div class="w-full">
+                    <img src="https://i.postimg.cc/ydCK9c9X/Gray-Minimalist-Web-Development-Linkedin-Banner.png" 
+                         alt="แบนเนอร์หลัก" 
+                         class="w-full h-auto object-contain mx-auto transition-all duration-300 hover:scale-105 rounded-lg shadow-sm"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="hidden text-center w-full">
+                        <div class="w-full h-64 flex items-center justify-center bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg px-8 py-12 border border-gray-300 shadow-sm">
+                            <span class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-800">🌐 ระบบคลังความรู้</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900">📚 ระบบคลังความรู้</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button id="dashboardBtn" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-2 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105 text-sm sm:text-base">
+                        <span class="hidden sm:inline">📊 Dashboard</span>
+                        <span class="sm:hidden">📊</span>
+                    </button>
+                    <button id="addPlanBtn" class="bg-pastel-pink-500 hover:bg-pastel-pink-600 text-white px-2 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                        <span class="hidden sm:inline">➕ เพิ่มแผนการจัดการเรียนรู้</span>
+                        <span class="sm:hidden">➕</span>
+                    </button>
+                    <button id="adminBtn" class="bg-gray-600 hover:bg-gray-700 text-white px-2 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                        <span class="hidden sm:inline">👤 ผู้ดูแลระบบ</span>
+                        <span class="sm:hidden">👤</span>
+                    </button>
+                    <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-4 py-2 rounded-lg font-medium transition-colors hidden text-sm sm:text-base">
+                        <span class="hidden sm:inline">🚪 ออกจากระบบ</span>
+                        <span class="sm:hidden">🚪</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-2 bg-pastel-pink-100 rounded-lg">
+                        <span class="text-2xl">📖</span>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">สื่อทั้งหมด</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalPlans">156</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <span class="text-2xl">📂</span>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">ยอดดาวน์โหลด</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalDownloads">2,847</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <span class="text-2xl">⭐</span>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">คะแนนเฉลี่ย</p>
+                        <p class="text-2xl font-bold text-gray-900" id="avgRating">4.6</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center">
+                    <div class="p-2 bg-purple-100 rounded-lg">
+                        <span class="text-2xl">👁</span>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">ยอดเข้าชม</p>
+                        <p class="text-2xl font-bold text-gray-900" id="totalViews">8,924</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Section - Minimal -->
+        <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+            <h3 class="text-base font-semibold text-gray-900 mb-3">📊 สถิติการใช้งาน</h3>
+            <div class="h-32">
+                <canvas id="statsChart" width="400" height="128"></canvas>
+            </div>
+        </div>
+
+        <!-- Filters Section - Top Layout -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔍 ตัวกรอง</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                <!-- Center Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สังกัดศูนย์อำนวยการ</label>
+                    <select id="centerFilter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent">
+                        <option value="">ทั้งหมด</option>
+                        <option value="ส่วนกลาง">ส่วนกลาง</option>
+                        <option value="วิทยาลัยสงฆ์ลำพูน">วิทยาลัยสงฆ์ลำพูน</option>
+                        <option value="วิทยาลัยสงฆ์นครลำปาง">วิทยาลัยสงฆ์นครลำปาง</option>
+                        <option value="วิทยาเขตขอนแก่น">วิทยาเขตขอนแก่น</option>
+                        <option value="วิทยาลัยสงฆ์ร้อยเอ็ด">วิทยาลัยสงฆ์ร้อยเอ็ด</option>
+                        <option value="วิทยาลัยสงฆ์อุทัยธานี">วิทยาลัยสงฆ์อุทัยธานี</option>
+                        <option value="วิทยาลัยสงฆ์ปัตตานี">วิทยาลัยสงฆ์ปัตตานี</option>
+                    </select>
+                </div>
+
+                <!-- Grade Level Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ระดับชั้น</label>
+                    <select id="gradeFilter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent">
+                        <option value="">ทั้งหมด</option>
+                        <optgroup label="ประถมศึกษา">
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </optgroup>
+                        <optgroup label="มัธยมศึกษา">
+                            <option value="ม.1">ม.1</option>
+                            <option value="ม.2">ม.2</option>
+                            <option value="ม.3">ม.3</option>
+                            <option value="ม.4">ม.4</option>
+                            <option value="ม.5">ม.5</option>
+                            <option value="ม.6">ม.6</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Tag Filter -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ค้นหา</label>
+                    <input type="text" id="tagFilter" placeholder="ค้นหาชื่อ แท็ก หรือศูนย์..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" autocomplete="off">
+                    <div id="searchDropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-10 hidden max-h-60 overflow-y-auto">
+                        <!-- Dropdown items will be populated here -->
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Filter Buttons Row -->
+            <div class="flex flex-col md:flex-row gap-3 mt-4">
+                <!-- ค้นหา - ซ้ายสุด -->
+                <button onclick="applyFilters()" class="flex-1 bg-pastel-pink-400 hover:bg-pastel-pink-500 text-white py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-[1.02] flex items-center justify-center">
+                    <span class="mr-2">🔍</span>ค้นหา
+                </button>
+                
+                <!-- สื่อแนะนำ - ตรงกลาง -->
+                <button onclick="showFeaturedOnly()" class="flex-1 bg-gradient-to-r from-orange-400 to-yellow-400 hover:from-orange-500 hover:to-yellow-500 text-white py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-[1.02] flex items-center justify-center">
+                    <span class="mr-2">✨</span>สื่อแนะนำ
+                </button>
+                
+                <!-- ล้างตัวกรอง - ขวาสุด -->
+                <button onclick="clearAllFilters()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2.5 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-[1.02] flex items-center justify-center">
+                    <span class="mr-2">🔄</span>ล้างตัวกรอง
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards Grid - Fixed 3 rows -->
+        <div id="planCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <!-- Sample Cards will be generated here -->
+        </div>
+        
+        <!-- Pagination -->
+        <div id="pagination" class="flex justify-center items-center space-x-2">
+            <!-- Pagination will be generated here -->
+        </div>
+    </div>
+
+    <!-- Add Plan Modal -->
+    <div id="addPlanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">➕ เพิ่มแผนการจัดการเรียนรู้</h2>
+                <button onclick="closeAddPlanModal()" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">✕</span>
+                </button>
+            </div>
+            
+            <form id="addPlanForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อกิจกรรม</label>
+                    <input type="text" id="activityName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ระดับชั้น</label>
+                    <select id="gradeLevel" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                        <option value="">เลือกระดับชั้น</option>
+                        <optgroup label="ประถมศึกษา">
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </optgroup>
+                        <optgroup label="มัธยมศึกษา">
+                            <option value="ม.1">ม.1</option>
+                            <option value="ม.2">ม.2</option>
+                            <option value="ม.3">ม.3</option>
+                            <option value="ม.4">ม.4</option>
+                            <option value="ม.5">ม.5</option>
+                            <option value="ม.6">ม.6</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สังกัดศูนย์อำนวยการ</label>
+                    <select id="centerSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                        <option value="">เลือกศูนย์อำนวยการ</option>
+                        <option value="ส่วนกลาง">ส่วนกลาง</option>
+                        <option value="วิทยาลัยสงฆ์ลำพูน">วิทยาลัยสงฆ์ลำพูน</option>
+                        <option value="วิทยาลัยสงฆ์นครลำปาง">วิทยาลัยสงฆ์นครลำปาง</option>
+                        <option value="วิทยาเขตขอนแก่น">วิทยาเขตขอนแก่น</option>
+                        <option value="วิทยาลัยสงฆ์ร้อยเอ็ด">วิทยาลัยสงฆ์ร้อยเอ็ด</option>
+                        <option value="วิทยาลัยสงฆ์อุทัยธานี">วิทยาลัยสงฆ์อุทัยธานี</option>
+                        <option value="วิทยาลัยสงฆ์ปัตตานี">วิทยาลัยสงฆ์ปัตตานี</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">อัปโหลดไฟล์</label>
+                    <input type="file" id="fileUpload" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
+                    <textarea id="description" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">แท็ก</label>
+                    <input type="text" id="tags" placeholder="พิมพ์แท็กแล้วกด Enter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent">
+                    <div id="tagsList" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="featured" class="h-4 w-4 text-pastel-pink-600 focus:ring-pastel-pink-500 border-gray-300 rounded">
+                    <label for="featured" class="ml-2 block text-sm text-gray-900">ตั้งเป็นสื่อแนะนำ</label>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="button" onclick="closeAddPlanModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg font-medium transition-colors">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="flex-1 bg-pastel-pink-500 hover:bg-pastel-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+                        บันทึก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">👤 เข้าสู่ระบบผู้ดูแล</h2>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">✕</span>
+                </button>
+            </div>
+            
+            <form id="adminForm">
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                    <input type="password" id="adminPassword" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="button" onclick="closeAdminModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg font-medium transition-colors">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="flex-1 bg-pastel-pink-500 hover:bg-pastel-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+                        เข้าสู่ระบบ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plan Details Modal -->
+    <div id="planDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">📖 รายละเอียดแผนการจัดการเรียนรู้</h2>
+                <button onclick="closePlanDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">✕</span>
+                </button>
+            </div>
+            <div id="planDetailsContent">
+                <!-- Content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Plan Modal -->
+    <div id="editPlanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">✏️ แก้ไขแผนการจัดการเรียนรู้</h2>
+                <button onclick="closeEditPlanModal()" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">✕</span>
+                </button>
+            </div>
+            
+            <form id="editPlanForm" class="space-y-6">
+                <input type="hidden" id="editPlanId">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อกิจกรรม</label>
+                    <input type="text" id="editActivityName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ระดับชั้น</label>
+                    <select id="editGradeLevel" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                        <option value="">เลือกระดับชั้น</option>
+                        <optgroup label="ประถมศึกษา">
+                            <option value="ป.1">ป.1</option>
+                            <option value="ป.2">ป.2</option>
+                            <option value="ป.3">ป.3</option>
+                            <option value="ป.4">ป.4</option>
+                            <option value="ป.5">ป.5</option>
+                            <option value="ป.6">ป.6</option>
+                        </optgroup>
+                        <optgroup label="มัธยมศึกษา">
+                            <option value="ม.1">ม.1</option>
+                            <option value="ม.2">ม.2</option>
+                            <option value="ม.3">ม.3</option>
+                            <option value="ม.4">ม.4</option>
+                            <option value="ม.5">ม.5</option>
+                            <option value="ม.6">ม.6</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สังกัดศูนย์อำนวยการ</label>
+                    <select id="editCenterSelect" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent" required>
+                        <option value="">เลือกศูนย์อำนวยการ</option>
+                        <option value="ส่วนกลาง">ส่วนกลาง</option>
+                        <option value="วิทยาลัยสงฆ์ลำพูน">วิทยาลัยสงฆ์ลำพูน</option>
+                        <option value="วิทยาลัยสงฆ์นครลำปาง">วิทยาลัยสงฆ์นครลำปาง</option>
+                        <option value="วิทยาเขตขอนแก่น">วิทยาเขตขอนแก่น</option>
+                        <option value="วิทยาลัยสงฆ์ร้อยเอ็ด">วิทยาลัยสงฆ์ร้อยเอ็ด</option>
+                        <option value="วิทยาลัยสงฆ์อุทัยธานี">วิทยาลัยสงฆ์อุทัยธานี</option>
+                        <option value="วิทยาลัยสงฆ์ปัตตานี">วิทยาลัยสงฆ์ปัตตานี</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
+                    <textarea id="editDescription" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">แท็ก</label>
+                    <input type="text" id="editTags" placeholder="พิมพ์แท็กแล้วกด Enter" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pastel-pink-500 focus:border-transparent">
+                    <div id="editTagsList" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" id="editFeatured" class="h-4 w-4 text-pastel-pink-600 focus:ring-pastel-pink-500 border-gray-300 rounded">
+                    <label for="editFeatured" class="ml-2 block text-sm text-gray-900">ตั้งเป็นสื่อแนะนำ</label>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="button" onclick="closeEditPlanModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg font-medium transition-colors">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="flex-1 bg-pastel-pink-500 hover:bg-pastel-pink-600 text-white py-3 rounded-lg font-medium transition-colors">
+                        บันทึกการแก้ไข
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Modal -->
+    <div id="dashboardModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-7xl w-full mx-4 max-h-[95vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+                    <span class="mr-3">📊</span>Dashboard
+                </h2>
+                <button onclick="closeDashboardModal()" class="text-gray-400 hover:text-gray-600 text-2xl">✕</button>
+            </div>
+            
+            <!-- Executive Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-blue-700">สื่อทั้งหมด</p>
+                            <p class="text-3xl font-bold text-blue-900" id="dashTotalPlans">0</p>
+                            <p class="text-xs text-blue-600 mt-1">+12% จากเดือนที่แล้ว</p>
+                        </div>
+                        <div class="text-4xl text-blue-500">📚</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-green-700">ดาวน์โหลดรวม</p>
+                            <p class="text-3xl font-bold text-green-900" id="dashTotalDownloads">0</p>
+                            <p class="text-xs text-green-600 mt-1">+18% จากเดือนที่แล้ว</p>
+                        </div>
+                        <div class="text-4xl text-green-500">📂</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-purple-700">ยอดเข้าชมรวม</p>
+                            <p class="text-3xl font-bold text-purple-900" id="dashTotalViews">0</p>
+                            <p class="text-xs text-purple-600 mt-1">+25% จากเดือนที่แล้ว</p>
+                        </div>
+                        <div class="text-4xl text-purple-500">👁</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 border border-yellow-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-yellow-700">คะแนนเฉลี่ย</p>
+                            <p class="text-3xl font-bold text-yellow-900" id="dashAvgRating">0</p>
+                            <p class="text-xs text-yellow-600 mt-1">จาก <span id="dashTotalVotes">0</span> โหวต</p>
+                        </div>
+                        <div class="text-4xl text-yellow-500">⭐</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-6 border border-pink-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-pink-700">สื่อแนะนำ</p>
+                            <p class="text-3xl font-bold text-pink-900" id="dashFeaturedCountTop">0</p>
+                            <p class="text-xs text-pink-600 mt-1" id="dashFeaturedPercentageTop">0%</p>
+                        </div>
+                        <div class="text-4xl text-pink-500">✨</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Performing Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <span class="mr-2">🏆</span>สื่อยอดนิยม TOP 5
+                    </h3>
+                    <div id="topPerformingContent" class="space-y-3">
+                        <!-- Content will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <span class="mr-2">🏢</span>ประสิทธิภาพตามศูนย์
+                    </h3>
+                    <div class="mb-4 h-48">
+                        <canvas id="centerChart" width="400" height="192"></canvas>
+                    </div>
+                    <div id="centerPerformance" class="space-y-2 max-h-32 overflow-y-auto">
+                        <!-- Content will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grade Level Distribution -->
+            <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <span class="mr-2">📊</span>การกระจายตามระดับชั้น
+                </h3>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="h-64">
+                        <canvas id="gradeChart" width="300" height="256"></canvas>
+                    </div>
+                    <div id="gradeLevelStats" class="grid grid-cols-3 md:grid-cols-4 gap-3 content-start">
+                        <!-- Content will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quality Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 border border-emerald-200 shadow-sm text-center">
+                    <div class="text-3xl mb-2">✨</div>
+                    <div class="text-2xl font-bold text-emerald-900" id="dashFeaturedCount">0</div>
+                    <div class="text-sm text-emerald-700 font-medium">สื่อแนะนำ</div>
+                    <div class="text-xs text-emerald-600 mt-1" id="dashFeaturedPercentage">0%</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-6 border border-orange-200 shadow-sm text-center">
+                    <div class="text-3xl mb-2">💬</div>
+                    <div class="text-2xl font-bold text-orange-900" id="dashInteractiveCount">0</div>
+                    <div class="text-sm text-orange-700 font-medium">สื่อที่มีการโต้ตอบ</div>
+                    <div class="text-xs text-orange-600 mt-1">มีความคิดเห็น</div>
+                </div>
+                
+                <div class="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border border-teal-200 shadow-sm text-center">
+                    <div class="text-3xl mb-2">📈</div>
+                    <div class="text-2xl font-bold text-teal-900" id="dashUsageRate">0%</div>
+                    <div class="text-sm text-teal-700 font-medium">อัตราการใช้งาน</div>
+                    <div class="text-xs text-teal-600 mt-1">ดาวน์โหลด/เข้าชม</div>
+                </div>
+            </div>
+            
+            <!-- Strategic Recommendations -->
+            <div class="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-amber-900 mb-4 flex items-center">
+                    <span class="mr-2">💡</span>ข้อเสนอแนะเชิงกลยุทธ์
+                </h3>
+                <div id="strategicRecommendations" class="space-y-4">
+                    <!-- Content will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div id="ratingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">♡ ให้คะแนนและแสดงความคิดเห็น</h2>
+                <button onclick="closeRatingModal()" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">✕</span>
+                </button>
+            </div>
+            
+            <!-- Rating Section -->
+            <div class="text-center mb-6 p-6 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-200">
+                <div class="stars-container flex justify-center space-x-3 mb-4">
+                    <span class="star cursor-pointer text-4xl transition-all duration-300 ease-in-out text-gray-300 hover:text-yellow-400">⭐</span>
+                    <span class="star cursor-pointer text-4xl transition-all duration-300 ease-in-out text-gray-300 hover:text-yellow-400">⭐</span>
+                    <span class="star cursor-pointer text-4xl transition-all duration-300 ease-in-out text-gray-300 hover:text-yellow-400">⭐</span>
+                    <span class="star cursor-pointer text-4xl transition-all duration-300 ease-in-out text-gray-300 hover:text-yellow-400">⭐</span>
+                    <span class="star cursor-pointer text-4xl transition-all duration-300 ease-in-out text-gray-300 hover:text-yellow-400">⭐</span>
+                </div>
+                <p class="text-gray-600 font-medium">คลิกดาวเพื่อให้คะแนน (1-5 ดาว)</p>
+                <p id="ratingText" class="text-sm text-gray-500 mt-2">กรุณาเลือกคะแนน</p>
+            </div>
+            
+            <!-- User Name Section -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">👤 ชื่อผู้แสดงความคิดเห็น</label>
+                <input type="text" id="reviewerName" placeholder="เช่น 'นักเรียน ม.6/1'" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+            </div>
+            
+            <!-- Comment Section -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">💬 ความคิดเห็น</label>
+                <textarea id="ratingComment" rows="4" placeholder="แบ่งปันความคิดเห็นของคุณเกี่ยวกับสื่อนี้..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"></textarea>
+            </div>
+            
+
+            
+            <div class="flex gap-4">
+                <button onclick="closeRatingModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-lg font-medium transition-colors">
+                    ยกเลิก
+                </button>
+                <button onclick="submitRating()" class="flex-1 bg-pink-500 text-white py-3 rounded-lg font-medium transition-all duration-200 opacity-50 cursor-not-allowed" disabled>
+                    ส่งความคิดเห็น
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let isAdmin = false;
+        let currentRating = 0;
+        let currentPlanId = null;
+        let plans = [];
+        let selectedTags = [];
+        let editSelectedTags = [];
+        let currentPage = 1;
+        const cardsPerPage = 9; // 3 rows x 3 columns
+        let firebaseInitialized = false;
+        let filteredPlans = []; // Store filtered results
+
+        // Initialize with empty array - no sample data
+        const samplePlans = [];
+
+        // Firebase Functions
+        window.initializeFirebaseApp = function() {
+            console.log('Initializing Firebase app...');
+            loadPlansFromFirebase();
+        };
+
+        // Error handler for Firebase initialization failure
+        window.initializeWithSampleData = function() {
+            console.log('Firebase initialization failed - starting with empty data');
+            plans = [];
+            updateStats();
+            renderPlans();
+        };
+
+        function showFirebaseError() {
+            const container = document.getElementById('planCards');
+            if (container) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-16">
+                        <div class="text-6xl mb-4">🔌</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</h3>
+                        <p class="text-gray-600 mb-6">กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองใหม่อีกครั้ง</p>
+                        <button onclick="location.reload()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                            🔄 ลองใหม่
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Load plans from Firebase
+        async function loadPlansFromFirebase() {
+            try {
+                if (!window.firebaseDB || !window.firebaseInitialized) {
+                    throw new Error('Firebase not initialized');
+                }
+
+                showLoadingState();
+                
+                const plansRef = window.firebaseDB.ref(window.firebaseDB.database, 'plans');
+                const snapshot = await window.firebaseDB.get(plansRef);
+                
+                if (snapshot.exists()) {
+                    const firebasePlans = [];
+                    snapshot.forEach((childSnapshot) => {
+                        const plan = childSnapshot.val();
+                        plan.id = childSnapshot.key;
+                        
+                        // Validate and sanitize data
+                        plan.reviews = Array.isArray(plan.reviews) ? plan.reviews : [];
+                        plan.tags = Array.isArray(plan.tags) ? plan.tags : [];
+                        plan.views = typeof plan.views === 'number' ? plan.views : 0;
+                        plan.downloads = typeof plan.downloads === 'number' ? plan.downloads : 0;
+                        plan.comments = typeof plan.comments === 'number' ? plan.comments : plan.reviews.length;
+                        plan.rating = typeof plan.rating === 'number' ? plan.rating : 0;
+                        plan.votes = typeof plan.votes === 'number' ? plan.votes : 0;
+                        plan.featured = typeof plan.featured === 'boolean' ? plan.featured : false;
+                        
+                        // Ensure required string fields
+                        plan.name = plan.name || 'ไม่ระบุชื่อ';
+                        plan.grade = plan.grade || 'ไม่ระบุ';
+                        plan.center = plan.center || 'ไม่ระบุ';
+                        plan.description = plan.description || 'ไม่มีคำอธิบาย';
+                        
+                        firebasePlans.push(plan);
+                    });
+                    
+                    // Use Firebase data or empty array
+                    plans = firebasePlans.length > 0 ? firebasePlans : [];
+                    console.log(`✅ โหลดข้อมูล ${plans.length} รายการจาก Firebase สำเร็จ`);
+                } else {
+                    console.log('ไม่พบข้อมูลใน Firebase - เริ่มต้นด้วยข้อมูลว่าง');
+                    plans = [];
+                }
+                
+                hideLoadingState();
+                updateStats();
+                renderPlans();
+                
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการโหลดข้อมูลจาก Firebase:', error);
+                hideLoadingState();
+                // Start with empty data as fallback
+                plans = [];
+                updateStats();
+                renderPlans();
+            }
+        }
+
+        function showLoadingState() {
+            const container = document.getElementById('planCards');
+            if (container) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-16">
+                        <div class="animate-spin text-6xl mb-4">⏳</div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">กำลังโหลดข้อมูล...</h3>
+                        <p class="text-gray-600">กรุณารอสักครู่</p>
+                    </div>
+                `;
+            }
+        }
+
+        function hideLoadingState() {
+            // Loading state will be replaced by renderPlans()
+        }
+
+
+
+        // Convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Save plan to Firebase
+        async function savePlanToFirebase(planData) {
+            try {
+                if (!window.firebaseDB || !window.firebaseInitialized) {
+                    throw new Error('Firebase ไม่พร้อมใช้งาน');
+                }
+
+                const plansRef = window.firebaseDB.ref(window.firebaseDB.database, 'plans');
+                const newPlanRef = window.firebaseDB.push(plansRef);
+                
+                // Validate and clean data before saving
+                const cleanData = {
+                    name: planData.name || '',
+                    grade: planData.grade || '',
+                    center: planData.center || '',
+                    description: planData.description || '',
+                    tags: Array.isArray(planData.tags) ? planData.tags : [],
+                    views: 0,
+                    downloads: 0,
+                    comments: 0,
+                    rating: 0,
+                    votes: 0,
+                    featured: Boolean(planData.featured),
+                    reviews: [],
+                    fileData: planData.fileData || null,
+                    fileName: planData.fileName || null,
+                    fileType: planData.fileType || null,
+                    fileSize: planData.fileSize || null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                
+                await window.firebaseDB.set(newPlanRef, cleanData);
+                console.log('✅ บันทึกข้อมูลใน Firebase สำเร็จ');
+                
+                // Return data with Firebase ID
+                return {
+                    ...cleanData,
+                    id: newPlanRef.key
+                };
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการบันทึกข้อมูล:', error);
+                throw new Error('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // Update plan in Firebase
+        async function updatePlanInFirebase(planId, planData) {
+            try {
+                if (!window.firebaseDB || !window.firebaseInitialized) {
+                    throw new Error('Firebase ไม่พร้อมใช้งาน');
+                }
+
+                if (!planId) {
+                    throw new Error('ไม่พบ ID ของข้อมูล');
+                }
+
+                const planRef = window.firebaseDB.ref(window.firebaseDB.database, `plans/${planId}`);
+                
+                // Prepare update data with validation
+                const updateData = {
+                    name: planData.name || '',
+                    grade: planData.grade || '',
+                    center: planData.center || '',
+                    description: planData.description || '',
+                    tags: Array.isArray(planData.tags) ? planData.tags : [],
+                    views: typeof planData.views === 'number' ? planData.views : 0,
+                    downloads: typeof planData.downloads === 'number' ? planData.downloads : 0,
+                    comments: typeof planData.comments === 'number' ? planData.comments : 0,
+                    rating: typeof planData.rating === 'number' ? planData.rating : 0,
+                    votes: typeof planData.votes === 'number' ? planData.votes : 0,
+                    featured: Boolean(planData.featured),
+                    reviews: Array.isArray(planData.reviews) ? planData.reviews : [],
+                    updatedAt: new Date().toISOString()
+                };
+
+                // Keep file data if it exists
+                if (planData.fileData) updateData.fileData = planData.fileData;
+                if (planData.fileName) updateData.fileName = planData.fileName;
+                if (planData.fileType) updateData.fileType = planData.fileType;
+                if (planData.fileSize) updateData.fileSize = planData.fileSize;
+
+                // Keep original createdAt if it exists
+                if (planData.createdAt) {
+                    updateData.createdAt = planData.createdAt;
+                }
+                
+                await window.firebaseDB.update(planRef, updateData);
+                console.log('✅ อัปเดตข้อมูลใน Firebase สำเร็จ');
+                
+                return true;
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการอัปเดตข้อมูล:', error);
+                throw new Error('ไม่สามารถอัปเดตข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // Delete plan from Firebase
+        async function deletePlanFromFirebase(planId) {
+            try {
+                if (!window.firebaseDB || !window.firebaseInitialized) {
+                    throw new Error('Firebase ไม่พร้อมใช้งาน');
+                }
+
+                if (!planId) {
+                    throw new Error('ไม่พบ ID ของข้อมูลที่ต้องการลบ');
+                }
+
+                const planRef = window.firebaseDB.ref(window.firebaseDB.database, `plans/${planId}`);
+                
+                // Check if plan exists before deleting
+                const snapshot = await window.firebaseDB.get(planRef);
+                if (!snapshot.exists()) {
+                    throw new Error('ไม่พบข้อมูลที่ต้องการลบ');
+                }
+                
+                await window.firebaseDB.remove(planRef);
+                console.log('✅ ลบข้อมูลจาก Firebase สำเร็จ');
+                
+                return true;
+            } catch (error) {
+                console.error('❌ เกิดข้อผิดพลาดในการลบข้อมูล:', error);
+                throw new Error('ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 เริ่มต้นแอปพลิเคชัน...');
+            
+            // Setup event listeners first
+            setupEventListeners();
+            initChart();
+            
+            // Start with empty data
+            plans = [];
+            updateStats();
+            renderPlans();
+            
+            // Then try to load from Firebase in background
+            let firebaseCheckCount = 0;
+            const maxChecks = 6; // 3 seconds total
+            
+            const checkFirebase = () => {
+                firebaseCheckCount++;
+                
+                if (window.firebaseInitialized && window.firebaseDB) {
+                    console.log('✅ Firebase พร้อมใช้งาน - กำลังโหลดข้อมูล...');
+                    loadPlansFromFirebase();
+                } else if (firebaseCheckCount >= maxChecks) {
+                    console.log('⚠️ Firebase ไม่พร้อมใช้งาน - เริ่มต้นด้วยข้อมูลว่าง');
+                    // Keep using empty data
+                } else {
+                    console.log(`⏳ รอ Firebase... (${firebaseCheckCount}/${maxChecks})`);
+                    setTimeout(checkFirebase, 500);
+                }
+            };
+            
+            // Start checking Firebase after a short delay
+            setTimeout(checkFirebase, 100);
+        });
+
+        function setupEventListeners() {
+            // Dashboard button
+            const dashboardBtn = document.getElementById('dashboardBtn');
+            if (dashboardBtn) {
+                dashboardBtn.addEventListener('click', openDashboardModal);
+            }
+            
+            // Add plan button
+            const addPlanBtn = document.getElementById('addPlanBtn');
+            if (addPlanBtn) {
+                addPlanBtn.addEventListener('click', openAddPlanModal);
+            }
+            
+            // Admin button
+            const adminBtn = document.getElementById('adminBtn');
+            if (adminBtn) {
+                adminBtn.addEventListener('click', openAdminModal);
+            }
+            
+            // Logout button
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+            
+            // Forms
+            const addPlanForm = document.getElementById('addPlanForm');
+            if (addPlanForm) {
+                addPlanForm.addEventListener('submit', handleAddPlan);
+            }
+            
+            const adminForm = document.getElementById('adminForm');
+            if (adminForm) {
+                adminForm.addEventListener('submit', handleAdminLogin);
+            }
+            
+            const editPlanForm = document.getElementById('editPlanForm');
+            if (editPlanForm) {
+                editPlanForm.addEventListener('submit', handleEditPlan);
+            }
+            
+            // Tags input
+            const tagsInput = document.getElementById('tags');
+            if (tagsInput) {
+                tagsInput.addEventListener('keypress', handleTagInput);
+            }
+            
+            const editTagsInput = document.getElementById('editTags');
+            if (editTagsInput) {
+                editTagsInput.addEventListener('keypress', handleEditTagInput);
+            }
+
+            // Form validation on input
+            const activityName = document.getElementById('activityName');
+            if (activityName) {
+                activityName.addEventListener('input', validateForm);
+            }
+            
+            const gradeLevel = document.getElementById('gradeLevel');
+            if (gradeLevel) {
+                gradeLevel.addEventListener('change', validateForm);
+            }
+            
+            const centerSelect = document.getElementById('centerSelect');
+            if (centerSelect) {
+                centerSelect.addEventListener('change', validateForm);
+            }
+            
+            const description = document.getElementById('description');
+            if (description) {
+                description.addEventListener('input', validateForm);
+            }
+            
+            // Filter inputs
+            const centerFilter = document.getElementById('centerFilter');
+            if (centerFilter) {
+                centerFilter.addEventListener('change', applyFilters);
+            }
+            
+            const gradeFilter = document.getElementById('gradeFilter');
+            if (gradeFilter) {
+                gradeFilter.addEventListener('change', applyFilters);
+            }
+            
+            // Add search dropdown functionality
+            let searchTimeout;
+            const tagFilterInput = document.getElementById('tagFilter');
+            const searchDropdown = document.getElementById('searchDropdown');
+            
+            if (tagFilterInput && searchDropdown) {
+                tagFilterInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+                    
+                    if (query.length >= 1) {
+                        searchTimeout = setTimeout(() => {
+                            showSearchSuggestions(query);
+                        }, 200);
+                    } else {
+                        hideSearchDropdown();
+                    }
+                });
+                
+                tagFilterInput.addEventListener('focus', function() {
+                    const query = this.value.trim();
+                    if (query.length >= 1) {
+                        showSearchSuggestions(query);
+                    }
+                });
+
+                // Add keyboard navigation for search dropdown
+                tagFilterInput.addEventListener('keydown', function(e) {
+                    const dropdown = document.getElementById('searchDropdown');
+                    if (!dropdown) return;
+                    
+                    const items = dropdown.querySelectorAll('div[onclick]');
+                    
+                    if (items.length === 0) return;
+                    
+                    let currentIndex = -1;
+                    items.forEach((item, index) => {
+                        if (item.classList.contains('bg-pink-100')) {
+                            currentIndex = index;
+                        }
+                    });
+                    
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+                        highlightDropdownItem(items, nextIndex);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+                        highlightDropdownItem(items, prevIndex);
+                    } else if (e.key === 'Enter' && currentIndex >= 0) {
+                        e.preventDefault();
+                        items[currentIndex].click();
+                    } else if (e.key === 'Escape') {
+                        hideSearchDropdown();
+                    }
+                });
+                
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!tagFilterInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                        hideSearchDropdown();
+                    }
+                });
+            }
+
+            // Close modals when clicking outside
+            document.addEventListener('click', function(e) {
+                // Close add plan modal
+                const addPlanModal = document.getElementById('addPlanModal');
+                if (addPlanModal && e.target === addPlanModal) {
+                    closeAddPlanModal();
+                }
+                
+                // Close admin modal
+                const adminModal = document.getElementById('adminModal');
+                if (adminModal && e.target === adminModal) {
+                    closeAdminModal();
+                }
+                
+                // Close plan details modal
+                const planDetailsModal = document.getElementById('planDetailsModal');
+                if (planDetailsModal && e.target === planDetailsModal) {
+                    closePlanDetailsModal();
+                }
+                
+                // Close edit plan modal
+                const editPlanModal = document.getElementById('editPlanModal');
+                if (editPlanModal && e.target === editPlanModal) {
+                    closeEditPlanModal();
+                }
+                
+                // Close rating modal
+                const ratingModal = document.getElementById('ratingModal');
+                if (ratingModal && e.target === ratingModal) {
+                    closeRatingModal();
+                }
+                
+                // Close dashboard modal
+                const dashboardModal = document.getElementById('dashboardModal');
+                if (dashboardModal && e.target === dashboardModal) {
+                    closeDashboardModal();
+                }
+            });
+        }
+
+        function openDashboardModal() {
+            updateDashboardData();
+            document.getElementById('dashboardModal').classList.remove('hidden');
+            document.getElementById('dashboardModal').classList.add('flex');
+        }
+
+        function closeDashboardModal() {
+            document.getElementById('dashboardModal').classList.add('hidden');
+            document.getElementById('dashboardModal').classList.remove('flex');
+        }
+
+        function updateDashboardData() {
+            // Update summary cards
+            const totalPlans = plans.length;
+            const totalDownloads = plans.reduce((sum, plan) => sum + plan.downloads, 0);
+            const totalViews = plans.reduce((sum, plan) => sum + plan.views, 0);
+            const totalVotes = plans.reduce((sum, plan) => sum + plan.votes, 0);
+            const avgRating = totalVotes > 0 ? 
+                plans.filter(p => p.votes > 0).reduce((sum, plan) => sum + plan.rating, 0) / plans.filter(p => p.votes > 0).length : 0;
+
+            document.getElementById('dashTotalPlans').textContent = totalPlans.toLocaleString();
+            document.getElementById('dashTotalDownloads').textContent = totalDownloads.toLocaleString();
+            document.getElementById('dashTotalViews').textContent = totalViews.toLocaleString();
+            document.getElementById('dashAvgRating').textContent = avgRating.toFixed(1);
+            document.getElementById('dashTotalVotes').textContent = totalVotes.toLocaleString();
+
+            // Update top performing content
+            updateTopPerformingContent();
+            
+            // Update center performance
+            updateCenterPerformance();
+            
+            // Update grade level stats
+            updateGradeLevelStats();
+            
+            // Update quality metrics
+            updateQualityMetrics();
+            
+            // Update strategic recommendations
+            updateStrategicRecommendations();
+        }
+
+        function updateTopPerformingContent() {
+            const sortedPlans = [...plans].sort((a, b) => {
+                const scoreA = (a.downloads * 2) + (a.views * 1) + (a.rating * a.votes * 3);
+                const scoreB = (b.downloads * 2) + (b.views * 1) + (b.rating * b.votes * 3);
+                return scoreB - scoreA;
+            }).slice(0, 5);
+
+            const html = sortedPlans.map((plan, index) => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">${plan.name}</p>
+                            <p class="text-xs text-gray-600">${plan.grade} • ${plan.center}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-bold text-green-600">${plan.downloads} ดาวน์โหลด</p>
+                        <p class="text-xs text-gray-500">⭐ ${plan.rating}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('topPerformingContent').innerHTML = html;
+        }
+
+        function updateCenterPerformance() {
+            const centerStats = {};
+            plans.forEach(plan => {
+                if (!centerStats[plan.center]) {
+                    centerStats[plan.center] = { plans: 0, downloads: 0, views: 0, rating: 0, votes: 0 };
+                }
+                centerStats[plan.center].plans++;
+                centerStats[plan.center].downloads += plan.downloads;
+                centerStats[plan.center].views += plan.views;
+                centerStats[plan.center].rating += plan.rating * plan.votes;
+                centerStats[plan.center].votes += plan.votes;
+            });
+
+            const sortedCenters = Object.entries(centerStats)
+                .map(([center, stats]) => ({
+                    center,
+                    ...stats,
+                    avgRating: stats.votes > 0 ? stats.rating / stats.votes : 0
+                }))
+                .sort((a, b) => b.downloads - a.downloads);
+
+            // Create center chart
+            createCenterChart(sortedCenters);
+
+            const html = sortedCenters.map((center, index) => {
+                const rankColors = [
+                    'bg-gradient-to-r from-yellow-100 to-yellow-200 border-yellow-300',
+                    'bg-gradient-to-r from-gray-100 to-gray-200 border-gray-300',
+                    'bg-gradient-to-r from-orange-100 to-orange-200 border-orange-300',
+                    'bg-gradient-to-r from-blue-100 to-blue-200 border-blue-300',
+                    'bg-gradient-to-r from-green-100 to-green-200 border-green-300',
+                    'bg-gradient-to-r from-purple-100 to-purple-200 border-purple-300',
+                    'bg-gradient-to-r from-pink-100 to-pink-200 border-pink-300'
+                ];
+                const colorClass = rankColors[index % rankColors.length];
+                const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                
+                return `
+                    <div class="flex items-center justify-between p-3 ${colorClass} rounded-lg border shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center font-bold text-sm shadow-sm">
+                                ${rankEmoji}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900 text-sm">${center.center.replace('วิทยาลัยสงฆ์', '').replace('วิทยาเขต', '')}</p>
+                                <p class="text-xs text-gray-600">${center.plans} สื่อ • ${center.views.toLocaleString()} ยอดดู</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-blue-600">${center.downloads.toLocaleString()}</p>
+                            <p class="text-xs text-gray-500">⭐ ${center.avgRating.toFixed(1)}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('centerPerformance').innerHTML = html;
+        }
+
+        function updateGradeLevelStats() {
+            const gradeStats = {};
+            const grades = ['ป.1', 'ป.2', 'ป.3', 'ป.4', 'ป.5', 'ป.6', 'ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+            
+            grades.forEach(grade => {
+                gradeStats[grade] = plans.filter(plan => plan.grade === grade).length;
+            });
+
+            // Create grade chart
+            createGradeChart(grades, gradeStats);
+
+            const html = grades.map((grade, index) => {
+                const colors = [
+                    'from-red-50 to-red-100 border-red-200 text-red-700',
+                    'from-teal-50 to-teal-100 border-teal-200 text-teal-700',
+                    'from-blue-50 to-blue-100 border-blue-200 text-blue-700',
+                    'from-green-50 to-green-100 border-green-200 text-green-700',
+                    'from-yellow-50 to-yellow-100 border-yellow-200 text-yellow-700',
+                    'from-purple-50 to-purple-100 border-purple-200 text-purple-700',
+                    'from-cyan-50 to-cyan-100 border-cyan-200 text-cyan-700',
+                    'from-orange-50 to-orange-100 border-orange-200 text-orange-700',
+                    'from-violet-50 to-violet-100 border-violet-200 text-violet-700',
+                    'from-sky-50 to-sky-100 border-sky-200 text-sky-700',
+                    'from-amber-50 to-amber-100 border-amber-200 text-amber-700',
+                    'from-emerald-50 to-emerald-100 border-emerald-200 text-emerald-700'
+                ];
+                const colorClass = colors[index % colors.length];
+                return `
+                    <div class="text-center p-3 bg-gradient-to-br ${colorClass} rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                        <div class="text-xl font-bold">${gradeStats[grade]}</div>
+                        <div class="text-xs font-medium">${grade}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('gradeLevelStats').innerHTML = html;
+        }
+
+        function updateQualityMetrics() {
+            const featuredCount = plans.filter(plan => plan.featured).length;
+            const featuredPercentage = plans.length > 0 ? ((featuredCount / plans.length) * 100).toFixed(1) : 0;
+            const interactiveCount = plans.filter(plan => plan.comments > 0).length;
+            const totalDownloads = plans.reduce((sum, plan) => sum + plan.downloads, 0);
+            const totalViews = plans.reduce((sum, plan) => sum + plan.views, 0);
+            const usageRate = totalViews > 0 ? ((totalDownloads / totalViews) * 100).toFixed(1) : 0;
+
+            // Update top section
+            const topFeaturedCount = document.getElementById('dashFeaturedCountTop');
+            const topFeaturedPercentage = document.getElementById('dashFeaturedPercentageTop');
+            if (topFeaturedCount) topFeaturedCount.textContent = featuredCount;
+            if (topFeaturedPercentage) topFeaturedPercentage.textContent = featuredPercentage + '%';
+            
+            // Update quality metrics section
+            const dashFeaturedCount = document.getElementById('dashFeaturedCount');
+            const dashFeaturedPercentage = document.getElementById('dashFeaturedPercentage');
+            const dashInteractiveCount = document.getElementById('dashInteractiveCount');
+            const dashUsageRate = document.getElementById('dashUsageRate');
+            
+            if (dashFeaturedCount) dashFeaturedCount.textContent = featuredCount;
+            if (dashFeaturedPercentage) dashFeaturedPercentage.textContent = featuredPercentage + '%';
+            if (dashInteractiveCount) dashInteractiveCount.textContent = interactiveCount;
+            if (dashUsageRate) dashUsageRate.textContent = usageRate + '%';
+        }
+
+        function updateStrategicRecommendations() {
+            const recommendations = [];
+            
+            // Analyze data and generate recommendations
+            const totalPlans = plans.length;
+            const avgDownloads = plans.reduce((sum, plan) => sum + plan.downloads, 0) / totalPlans;
+            const lowPerformingPlans = plans.filter(plan => plan.downloads < avgDownloads * 0.5).length;
+            const highRatedPlans = plans.filter(plan => plan.rating >= 4.5 && plan.votes >= 5).length;
+            const centerStats = {};
+            
+            plans.forEach(plan => {
+                if (!centerStats[plan.center]) centerStats[plan.center] = 0;
+                centerStats[plan.center]++;
+            });
+            
+            const centerCounts = Object.values(centerStats);
+            const maxCenter = Math.max(...centerCounts);
+            const minCenter = Math.min(...centerCounts);
+
+            // Generate recommendations based on analysis
+            if (lowPerformingPlans > totalPlans * 0.3) {
+                recommendations.push({
+                    icon: '📈',
+                    title: 'ปรับปรุงสื่อที่มีประสิทธิภาพต่ำ',
+                    description: `มีสื่อ ${lowPerformingPlans} รายการที่มีการดาวน์โหลดต่ำกว่าค่าเฉลี่ย ควรปรับปรุงเนื้อหาหรือการนำเสนอ`,
+                    priority: 'สูง'
+                });
+            }
+
+            if (highRatedPlans > 0) {
+                recommendations.push({
+                    icon: '⭐',
+                    title: 'ส่งเสริมสื่อคุณภาพสูง',
+                    description: `มีสื่อคุณภาพสูง ${highRatedPlans} รายการ ควรนำมาเป็นแบบอย่างและส่งเสริมให้มากขึ้น`,
+                    priority: 'ปานกลาง'
+                });
+            }
+
+            if (maxCenter > minCenter * 2) {
+                recommendations.push({
+                    icon: '🏢',
+                    title: 'สร้างความสมดุลระหว่างศูนย์',
+                    description: 'การกระจายสื่อระหว่างศูนย์ไม่สมดุล ควรส่งเสริมศูนย์ที่มีสื่อน้อยให้ผลิตเพิ่มขึ้น',
+                    priority: 'ปานกลาง'
+                });
+            }
+
+            const featuredCount = plans.filter(plan => plan.featured).length;
+            if (featuredCount < totalPlans * 0.2) {
+                recommendations.push({
+                    icon: '✨',
+                    title: 'เพิ่มสื่อแนะนำ',
+                    description: 'ควรมีสื่อแนะนำอย่างน้อย 20% ของสื่อทั้งหมด เพื่อช่วยผู้ใช้เลือกสื่อคุณภาพ',
+                    priority: 'ต่ำ'
+                });
+            }
+
+            const html = recommendations.map(rec => `
+                <div class="bg-white border border-amber-200 rounded-lg p-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-2xl">${rec.icon}</div>
+                        <div class="flex-1">
+                            <h4 class="font-bold text-amber-900 mb-1">${rec.title}</h4>
+                            <p class="text-sm text-amber-800 mb-2">${rec.description}</p>
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                                rec.priority === 'สูง' ? 'bg-red-100 text-red-800' :
+                                rec.priority === 'ปานกลาง' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                            }">
+                                ความสำคัญ: ${rec.priority}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('strategicRecommendations').innerHTML = html || '<div class="text-center text-gray-500 py-4">ระบบทำงานได้ดีแล้ว ไม่มีข้อเสนอแนะเพิ่มเติม</div>';
+        }
+
+        function openAddPlanModal() {
+            document.getElementById('addPlanModal').classList.remove('hidden');
+            document.getElementById('addPlanModal').classList.add('flex');
+        }
+
+        function closeAddPlanModal() {
+            document.getElementById('addPlanModal').classList.add('hidden');
+            document.getElementById('addPlanModal').classList.remove('flex');
+            document.getElementById('addPlanForm').reset();
+            selectedTags = [];
+            updateTagsList();
+        }
+
+        function openAdminModal() {
+            document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('adminModal').classList.add('flex');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminModal').classList.remove('flex');
+            document.getElementById('adminForm').reset();
+        }
+
+        async function openPlanDetailsModal(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) return;
+
+            // Increment views when opening details
+            plan.views += 1;
+            
+            // Try to update view count in Firebase (async, don't wait)
+            if (window.firebaseInitialized && window.firebaseDB) {
+                updatePlanInFirebase(planId, plan).catch(error => {
+                    console.warn('Firebase view count update failed:', error);
+                });
+            } else {
+                console.log('View count updated locally only');
+            }
+            
+            updateStats();
+            
+            const coverImage = generateCoverImage(plan.name, plan.grade);
+            
+            const content = `
+                <div class="space-y-6">
+                    <!-- Auto-Generated Cover Preview -->
+                    <div class="relative h-32 bg-gradient-to-br ${coverImage.gradientColors} flex items-center justify-center text-white rounded-xl overflow-hidden">
+                        <div class="absolute inset-0 opacity-10">
+                            <div class="absolute top-2 left-2 w-6 h-6 border border-white rounded-full"></div>
+                            <div class="absolute top-4 right-3 w-3 h-3 border border-white rounded-full"></div>
+                            <div class="absolute bottom-3 left-4 w-4 h-4 border border-white rounded-full"></div>
+                            <div class="absolute bottom-2 right-2 w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <div class="text-4xl mr-4 filter drop-shadow-lg">${coverImage.icon}</div>
+                        <div class="text-center">
+                            <h4 class="text-lg font-bold text-white drop-shadow-md">${plan.name}</h4>
+                            <div class="text-sm font-semibold text-white/90 bg-white/20 px-2 py-1 rounded-full inline-block mt-1">${plan.grade}</div>
+                        </div>
+                        ${plan.featured ? '<div class="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold flex items-center"><span class="mr-1">⭐</span>แนะนำ</div>' : ''}
+                    </div>
+                
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">${plan.name}</h3>
+                            <div class="flex items-center space-x-4 text-sm text-gray-600 mb-4">
+                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">📚 ${plan.grade}</span>
+                                <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">🏢 ${plan.center}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200">
+                        <h4 class="font-bold text-gray-900 mb-3 flex items-center">
+                            <span class="mr-2">📝</span>คำอธิบาย
+                        </h4>
+                        <p class="text-gray-700 leading-relaxed">${plan.description}</p>
+                    </div>
+                    
+                    ${plan.fileName ? `
+                    <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+                        <h4 class="font-bold text-gray-900 mb-3 flex items-center">
+                            <span class="mr-2">📎</span>ไฟล์แนบ
+                        </h4>
+                        <div class="bg-white rounded-lg p-4 border border-purple-200 shadow-sm">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl">
+                                    ${plan.fileType?.includes('pdf') ? '📄' : 
+                                      plan.fileType?.includes('word') ? '📝' : 
+                                      plan.fileType?.includes('powerpoint') || plan.fileType?.includes('presentation') ? '📊' : 
+                                      plan.fileType?.includes('excel') || plan.fileType?.includes('spreadsheet') ? '📈' : 
+                                      plan.fileType?.includes('image') ? '🖼️' : '📁'}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-900">${plan.fileName}</p>
+                                    <p class="text-sm text-gray-600">
+                                        ${plan.fileSize ? `${(plan.fileSize / 1024).toFixed(1)} KB` : 'ไม่ทราบขนาด'} • 
+                                        ${plan.fileType?.split('/')[1]?.toUpperCase() || 'ไฟล์'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                        <h4 class="font-bold text-gray-900 mb-3 flex items-center">
+                            <span class="mr-2">🏷️</span>แท็ก
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${plan.tags.map((tag, index) => {
+                                const colors = [
+                                    'bg-gradient-to-r from-pink-100 to-rose-100 text-pink-800 border-pink-200',
+                                    'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border-blue-200',
+                                    'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200',
+                                    'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 border-purple-200',
+                                    'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border-yellow-200',
+                                    'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 border-orange-200',
+                                    'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-800 border-teal-200',
+                                    'bg-gradient-to-r from-indigo-100 to-blue-100 text-indigo-800 border-indigo-200',
+                                    'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-800 border-slate-200',
+                                    'bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800 border-emerald-200'
+                                ];
+                                const colorClass = colors[(tag.length + index) % colors.length];
+                                return `<span class="${colorClass} px-4 py-2 rounded-full text-sm font-medium shadow-sm border">${tag}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 shadow-sm">
+                            <div class="text-3xl mb-2">👁</div>
+                            <div class="text-2xl font-bold text-blue-900">${plan.views}</div>
+                            <div class="text-sm text-blue-700 font-medium">ยอดดู</div>
+                        </div>
+                        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 shadow-sm">
+                            <div class="text-3xl mb-2">📂</div>
+                            <div class="text-2xl font-bold text-green-900">${plan.downloads}</div>
+                            <div class="text-sm text-green-700 font-medium">ดาวน์โหลด</div>
+                        </div>
+                        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-sm">
+                            <div class="text-3xl mb-2">💬</div>
+                            <div class="text-2xl font-bold text-purple-900">${plan.comments}</div>
+                            <div class="text-sm text-purple-700 font-medium">คอมเมนต์</div>
+                        </div>
+                        <div class="text-center p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200 shadow-sm">
+                            <div class="text-3xl mb-2">⭐</div>
+                            <div class="text-2xl font-bold text-yellow-900">${plan.rating}</div>
+                            <div class="text-sm text-yellow-700 font-medium">คะแนน (${plan.votes} โหวต)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <button onclick="downloadPlan('${plan.id}'); closePlanDetailsModal();" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            ${plan.fileName ? '📥 ดาวน์โหลดไฟล์' : '📂 ดาวน์โหลดข้อมูล'}
+                        </button>
+                        <button onclick="openRatingModal('${plan.id}'); closePlanDetailsModal();" class="flex-1 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white py-4 rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            ♡ ให้คะแนน
+                        </button>
+                        ${isAdmin ? `
+                            <button onclick="openEditPlanModal('${plan.id}'); closePlanDetailsModal();" class="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">✏️ แก้ไข</button>
+                            <button onclick="deletePlan('${plan.id}')" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-4 rounded-xl font-bold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">🗑 ลบ</button>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <h4 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                            <span class="mr-2">💭</span>ความคิดเห็นและรีวิว
+                        </h4>
+                        <div id="planComments" class="space-y-4 max-h-80 overflow-y-auto">
+                            ${plan.reviews && plan.reviews.length > 0 ? 
+                                plan.reviews.map(review => `
+                                    <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-200 shadow-sm">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="font-semibold text-gray-900">${review.name}</span>
+                                                <div class="flex text-yellow-400 text-sm">
+                                                    ${'⭐'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                                                </div>
+                                            </div>
+                                            <span class="text-xs text-gray-500">${new Date(review.date).toLocaleDateString('th-TH')}</span>
+                                        </div>
+                                        <p class="text-gray-700 text-sm leading-relaxed">${review.comment}</p>
+                                    </div>
+                                `).join('') 
+                                : '<div class="text-center text-gray-500 py-8 bg-gray-50 rounded-xl">ยังไม่มีความคิดเห็น</div>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('planDetailsContent').innerHTML = content;
+            document.getElementById('planDetailsModal').classList.remove('hidden');
+            document.getElementById('planDetailsModal').classList.add('flex');
+        }
+
+        function closePlanDetailsModal() {
+            document.getElementById('planDetailsModal').classList.add('hidden');
+            document.getElementById('planDetailsModal').classList.remove('flex');
+        }
+
+        function openRatingModal(planId) {
+            currentPlanId = planId;
+            currentRating = 0;
+            
+            // Reset form fields
+            document.getElementById('reviewerName').value = '';
+            document.getElementById('ratingComment').value = '';
+            
+            // Reset rating text
+            const ratingText = document.getElementById('ratingText');
+            if (ratingText) {
+                ratingText.textContent = 'กรุณาเลือกคะแนน';
+                ratingText.className = 'text-sm text-gray-500 mt-2';
+            }
+            
+            // Reset submit button
+            const submitBtn = document.querySelector('#ratingModal button[onclick="submitRating()"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.remove('hover:bg-pink-600');
+            }
+            
+            updateStarDisplay();
+            setupStarEventListeners();
+            document.getElementById('ratingModal').classList.remove('hidden');
+            document.getElementById('ratingModal').classList.add('flex');
+        }
+
+        function setupStarEventListeners() {
+            // Remove existing listeners first
+            document.querySelectorAll('.star').forEach(star => {
+                star.replaceWith(star.cloneNode(true));
+            });
+            
+            // Add new listeners
+            document.querySelectorAll('.star').forEach((star, index) => {
+                star.addEventListener('click', () => handleStarClick(index + 1));
+                star.addEventListener('mouseover', () => handleStarHover(index + 1));
+            });
+            
+            // Add container listener for mouse leave
+            const starsContainer = document.querySelector('.stars-container');
+            if (starsContainer) {
+                starsContainer.addEventListener('mouseleave', handleStarLeave);
+            }
+        }
+
+        function closeRatingModal() {
+            document.getElementById('ratingModal').classList.add('hidden');
+            document.getElementById('ratingModal').classList.remove('flex');
+            document.getElementById('reviewerName').value = '';
+            document.getElementById('ratingComment').value = '';
+            currentPlanId = null;
+            currentRating = 0;
+            updateStarDisplay();
+        }
+
+        async function handleAddPlan(e) {
+            e.preventDefault();
+            
+            // Validate form data
+            const activityName = document.getElementById('activityName').value.trim();
+            const gradeLevel = document.getElementById('gradeLevel').value;
+            const centerSelect = document.getElementById('centerSelect').value;
+            const description = document.getElementById('description').value.trim();
+            const fileInput = document.getElementById('fileUpload');
+            
+            if (!activityName) {
+                showError('กรุณากรอกชื่อกิจกรรม', 'activityName');
+                return;
+            }
+            
+            if (activityName.length < 3) {
+                showError('ชื่อกิจกรรมต้องมีอย่างน้อย 3 ตัวอักษร', 'activityName');
+                return;
+            }
+            
+            if (!gradeLevel) {
+                showError('กรุณาเลือกระดับชั้น', 'gradeLevel');
+                return;
+            }
+            
+            if (!centerSelect) {
+                showError('กรุณาเลือกสังกัดศูนย์อำนวยการ', 'centerSelect');
+                return;
+            }
+            
+            if (!description) {
+                showError('กรุณากรอกคำอธิบาย', 'description');
+                return;
+            }
+            
+            if (description.length < 10) {
+                showError('คำอธิบายต้องมีอย่างน้อย 10 ตัวอักษร', 'description');
+                return;
+            }
+            
+            if (selectedTags.length === 0) {
+                showError('กรุณาเพิ่มแท็กอย่างน้อย 1 แท็ก', 'tags');
+                return;
+            }
+            
+            // Check for duplicate names
+            const existingPlan = plans.find(plan => 
+                plan.name.toLowerCase() === activityName.toLowerCase()
+            );
+            
+            if (existingPlan) {
+                showError('มีแผนการจัดการเรียนรู้ชื่อนี้อยู่แล้ว กรุณาใช้ชื่ออื่น', 'activityName');
+                return;
+            }
+            
+            const newPlan = {
+                name: activityName,
+                grade: gradeLevel,
+                center: centerSelect,
+                description: description,
+                tags: [...selectedTags],
+                featured: document.getElementById('featured').checked
+            };
+
+            // Handle file upload
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                
+                // Validate file size (max 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    showError('ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 10MB)', 'fileUpload');
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-powerpoint',
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'text/plain',
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif'
+                ];
+                
+                if (!allowedTypes.includes(file.type)) {
+                    showError('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ PDF, Word, PowerPoint, Excel, รูปภาพ หรือ Text', 'fileUpload');
+                    return;
+                }
+                
+                try {
+                    // Convert file to base64
+                    const fileData = await fileToBase64(file);
+                    newPlan.fileData = fileData;
+                    newPlan.fileName = file.name;
+                    newPlan.fileType = file.type;
+                    newPlan.fileSize = file.size;
+                } catch (error) {
+                    showError('เกิดข้อผิดพลาดในการอ่านไฟล์', 'fileUpload');
+                    return;
+                }
+            }
+            
+            try {
+                // Show loading alert
+                showLoading('กำลังบันทึกแผนการจัดการเรียนรู้...');
+                
+                if (!window.firebaseInitialized || !window.firebaseDB) {
+                    throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+                }
+                
+                // Try to save to Firebase, but continue even if it fails
+                let savedPlan;
+                try {
+                    if (window.firebaseInitialized && window.firebaseDB) {
+                        savedPlan = await savePlanToFirebase(newPlan);
+                    } else {
+                        throw new Error('Firebase not available');
+                    }
+                } catch (firebaseError) {
+                    console.warn('Firebase save failed, using local storage:', firebaseError);
+                    // Create local plan with unique ID
+                    savedPlan = {
+                        ...newPlan,
+                        id: 'local_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                        views: 0,
+                        downloads: 0,
+                        comments: 0,
+                        rating: 0,
+                        votes: 0,
+                        reviews: [],
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                }
+                
+                plans.unshift(savedPlan);
+                
+                updateStats();
+                applyFilters();
+                
+                // Hide loading and close modal
+                hideLoading();
+                closeAddPlanModal();
+                
+                // Show success message
+                showSuccess(`เพิ่มแผนการจัดการเรียนรู้ "${activityName}" เรียบร้อยแล้ว!`);
+                
+                // Scroll to top to show the new plan
+                currentPage = 1;
+                applyFilters();
+                document.getElementById('planCards').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+            } catch (error) {
+                console.error('Error adding plan:', error);
+                hideLoading();
+                showError(error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        function showError(message, focusElementId = null) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: message,
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#ef4444',
+                customClass: {
+                    popup: 'font-thai',
+                    title: 'font-thai',
+                    content: 'font-thai'
+                }
+            });
+            
+            if (focusElementId) {
+                const element = document.getElementById(focusElementId);
+                if (element) {
+                    element.focus();
+                    element.classList.add('border-red-500');
+                    setTimeout(() => {
+                        element.classList.remove('border-red-500');
+                    }, 3000);
+                }
+            }
+        }
+
+        function showSuccess(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: message,
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#22c55e',
+                timer: 3000,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'font-thai',
+                    title: 'font-thai',
+                    content: 'font-thai'
+                }
+            });
+        }
+
+        function showLoading(message = 'กำลังดำเนินการ...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                customClass: {
+                    popup: 'font-thai',
+                    title: 'font-thai'
+                }
+            });
+        }
+
+        function hideLoading() {
+            Swal.close();
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('adminPassword').value;
+            if (password === '1234') {
+                isAdmin = true;
+                closeAdminModal();
+                
+                // Show logout button and hide admin login button
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                document.getElementById('adminBtn').classList.add('hidden');
+                
+                renderPlans();
+                showSuccess('เข้าสู่ระบบผู้ดูแลเรียบร้อยแล้ว!');
+            } else {
+                showError('รหัสผ่านไม่ถูกต้อง!');
+            }
+        }
+
+        function handleTagInput(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tag = e.target.value.trim();
+                if (tag && !selectedTags.includes(tag)) {
+                    selectedTags.push(tag);
+                    updateTagsList();
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function updateTagsList() {
+            try {
+                const tagsList = document.getElementById('tagsList');
+                if (!tagsList) return;
+                
+                tagsList.innerHTML = selectedTags.map(tag => {
+                    const escapedTag = tag
+                        .replace(/\\/g, '\\\\')
+                        .replace(/'/g, "\\'")
+                        .replace(/"/g, '\\"');
+                    return `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center">
+                        ${tag}
+                        <button type="button" onclick="removeTag('${escapedTag}')" class="ml-2 text-green-600 hover:text-green-800">✕</button>
+                    </span>`;
+                }).join('');
+            } catch (error) {
+                console.error('Error in updateTagsList:', error);
+            }
+        }
+
+        function removeTag(tag) {
+            try {
+                // Unescape the tag for comparison
+                const unescapedTag = tag
+                    .replace(/\\'/g, "'")
+                    .replace(/\\"/g, '"')
+                    .replace(/\\\\/g, '\\');
+                selectedTags = selectedTags.filter(t => t !== unescapedTag);
+                updateTagsList();
+            } catch (error) {
+                console.error('Error in removeTag:', error);
+            }
+        }
+
+        function removeEditTag(tag) {
+            try {
+                // Unescape the tag for comparison
+                const unescapedTag = tag
+                    .replace(/\\'/g, "'")
+                    .replace(/\\"/g, '"')
+                    .replace(/\\\\/g, '\\');
+                editSelectedTags = editSelectedTags.filter(t => t !== unescapedTag);
+                updateEditTagsList();
+            } catch (error) {
+                console.error('Error in removeEditTag:', error);
+            }
+        }
+
+        async function handleLogout() {
+            const result = await Swal.fire({
+                icon: 'question',
+                title: 'ยืนยันการออกจากระบบ',
+                text: 'คุณต้องการออกจากระบบผู้ดูแลหรือไม่?',
+                showCancelButton: true,
+                confirmButtonText: 'ออกจากระบบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                customClass: {
+                    popup: 'font-thai',
+                    title: 'font-thai',
+                    content: 'font-thai'
+                }
+            });
+            
+            if (result.isConfirmed) {
+                isAdmin = false;
+                
+                // Clear any stored session data
+                localStorage.removeItem('adminSession');
+                sessionStorage.removeItem('adminSession');
+                
+                // Hide logout button and show admin login button
+                document.getElementById('logoutBtn').classList.add('hidden');
+                document.getElementById('adminBtn').classList.remove('hidden');
+                
+                // Reset all filters and go back to normal view
+                clearAllFilters();
+                renderPlans();
+                
+                // Show success message
+                showSuccess('ออกจากระบบเรียบร้อยแล้ว!');
+                
+                // Scroll to top smoothly instead of reloading
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function openEditPlanModal(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) return;
+
+            // Populate form with current data
+            document.getElementById('editPlanId').value = plan.id;
+            document.getElementById('editActivityName').value = plan.name;
+            document.getElementById('editGradeLevel').value = plan.grade;
+            document.getElementById('editCenterSelect').value = plan.center;
+            document.getElementById('editDescription').value = plan.description;
+            document.getElementById('editFeatured').checked = plan.featured;
+            
+            // Set tags
+            editSelectedTags = [...plan.tags];
+            updateEditTagsList();
+            
+            document.getElementById('editPlanModal').classList.remove('hidden');
+            document.getElementById('editPlanModal').classList.add('flex');
+        }
+
+        function closeEditPlanModal() {
+            document.getElementById('editPlanModal').classList.add('hidden');
+            document.getElementById('editPlanModal').classList.remove('flex');
+            document.getElementById('editPlanForm').reset();
+            editSelectedTags = [];
+            updateEditTagsList();
+        }
+
+        async function handleEditPlan(e) {
+            e.preventDefault();
+            
+            const planId = document.getElementById('editPlanId').value;
+            const planIndex = plans.findIndex(p => p.id === planId);
+            
+            if (planIndex === -1) {
+                showError('ไม่พบแผนการจัดการเรียนรู้ที่ต้องการแก้ไข');
+                return;
+            }
+            
+            // Validate form data
+            const activityName = document.getElementById('editActivityName').value.trim();
+            const gradeLevel = document.getElementById('editGradeLevel').value;
+            const centerSelect = document.getElementById('editCenterSelect').value;
+            const description = document.getElementById('editDescription').value.trim();
+            
+            if (!activityName) {
+                showError('กรุณากรอกชื่อกิจกรรม', 'editActivityName');
+                return;
+            }
+            
+            if (activityName.length < 3) {
+                showError('ชื่อกิจกรรมต้องมีอย่างน้อย 3 ตัวอักษร', 'editActivityName');
+                return;
+            }
+            
+            if (!gradeLevel) {
+                showError('กรุณาเลือกระดับชั้น', 'editGradeLevel');
+                return;
+            }
+            
+            if (!centerSelect) {
+                showError('กรุณาเลือกสังกัดศูนย์อำนวยการ', 'editCenterSelect');
+                return;
+            }
+            
+            if (!description) {
+                showError('กรุณากรอกคำอธิบาย', 'editDescription');
+                return;
+            }
+            
+            if (description.length < 10) {
+                showError('คำอธิบายต้องมีอย่างน้อย 10 ตัวอักษร', 'editDescription');
+                return;
+            }
+            
+            if (editSelectedTags.length === 0) {
+                showError('กรุณาเพิ่มแท็กอย่างน้อย 1 แท็ก', 'editTags');
+                return;
+            }
+            
+            // Check for duplicate names (excluding current plan)
+            const existingPlan = plans.find(plan => 
+                plan.id !== planId && plan.name.toLowerCase() === activityName.toLowerCase()
+            );
+            
+            if (existingPlan) {
+                showError('มีแผนการจัดการเรียนรู้ชื่อนี้อยู่แล้ว กรุณาใช้ชื่ออื่น', 'editActivityName');
+                return;
+            }
+            
+            const oldName = plans[planIndex].name;
+            
+            try {
+                // Show loading alert
+                showLoading('กำลังอัปเดตแผนการจัดการเรียนรู้...');
+                
+                if (!window.firebaseInitialized || !window.firebaseDB) {
+                    throw new Error('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+                }
+                
+                // Update plan data
+                const updatedPlan = {
+                    ...plans[planIndex],
+                    name: activityName,
+                    grade: gradeLevel,
+                    center: centerSelect,
+                    description: description,
+                    tags: [...editSelectedTags],
+                    featured: document.getElementById('editFeatured').checked
+                };
+                
+                // Try to update in Firebase
+                try {
+                    if (window.firebaseInitialized && window.firebaseDB) {
+                        await updatePlanInFirebase(planId, updatedPlan);
+                    } else {
+                        console.warn('Firebase not available, updating locally only');
+                    }
+                } catch (firebaseError) {
+                    console.warn('Firebase update failed, continuing with local update:', firebaseError);
+                }
+                
+                // Update local array
+                plans[planIndex] = updatedPlan;
+                
+                updateStats();
+                applyFilters();
+                
+                // Hide loading and close modal
+                hideLoading();
+                closeEditPlanModal();
+                
+                showSuccess(`แก้ไขแผนการจัดการเรียนรู้ "${oldName}" เป็น "${activityName}" เรียบร้อยแล้ว!`);
+                
+            } catch (error) {
+                console.error('Error updating plan:', error);
+                hideLoading();
+                showError(error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        function handleEditTagInput(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tag = e.target.value.trim();
+                if (tag && !editSelectedTags.includes(tag)) {
+                    editSelectedTags.push(tag);
+                    updateEditTagsList();
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function updateEditTagsList() {
+            try {
+                const tagsList = document.getElementById('editTagsList');
+                if (!tagsList) return;
+                
+                tagsList.innerHTML = editSelectedTags.map(tag => {
+                    const escapedTag = tag
+                        .replace(/\\/g, '\\\\')
+                        .replace(/'/g, "\\'")
+                        .replace(/"/g, '\\"');
+                    return `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center">
+                        ${tag}
+                        <button type="button" onclick="removeEditTag('${escapedTag}')" class="ml-2 text-green-600 hover:text-green-800">✕</button>
+                    </span>`;
+                }).join('');
+            } catch (error) {
+                console.error('Error in updateEditTagsList:', error);
+            }
+        }
+
+        function handleStarClick(rating) {
+            currentRating = rating;
+            updateStarDisplay();
+            
+            // Update rating text
+            const ratingText = document.getElementById('ratingText');
+            if (ratingText) {
+                const ratingLabels = ['', 'แย่มาก', 'แย่', 'ปานกลาง', 'ดี', 'ดีมาก'];
+                ratingText.textContent = `คุณให้คะแนน: ${rating} ดาว (${ratingLabels[rating]})`;
+                ratingText.className = 'text-sm text-pink-600 mt-2 font-semibold';
+            }
+            
+            // Enable submit button
+            const submitBtn = document.querySelector('#ratingModal button[onclick="submitRating()"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.add('hover:bg-pink-600');
+            }
+        }
+
+        function handleStarHover(hoverRating) {
+            document.querySelectorAll('.star').forEach((star, index) => {
+                if (index < hoverRating) {
+                    star.style.color = '#fbbf24'; // Yellow color
+                    star.style.transform = 'scale(1.1)';
+                } else {
+                    star.style.color = '#d1d5db'; // Gray color
+                    star.style.transform = 'scale(1)';
+                }
+            });
+        }
+
+        function handleStarLeave() {
+            updateStarDisplay();
+        }
+
+        function updateStarDisplay() {
+            document.querySelectorAll('.star').forEach((star, index) => {
+                if (index < currentRating) {
+                    star.style.color = '#fbbf24'; // Yellow color for selected
+                    star.style.transform = 'scale(1)';
+                } else {
+                    star.style.color = '#d1d5db'; // Gray color for unselected
+                    star.style.transform = 'scale(1)';
+                }
+            });
+        }
+
+        function showSearchSuggestions(query) {
+            try {
+                const searchDropdown = document.getElementById('searchDropdown');
+                if (!searchDropdown) return;
+                
+                const lowerQuery = query.toLowerCase();
+                
+                // Collect all unique suggestions from plans data
+                const suggestions = new Set();
+                
+                plans.forEach(plan => {
+                    if (!plan) return;
+                    
+                    // Add matching plan names
+                    if (plan.name && plan.name.toLowerCase().includes(lowerQuery)) {
+                        suggestions.add(plan.name);
+                    }
+                    
+                    // Add matching tags
+                    if (plan.tags && Array.isArray(plan.tags)) {
+                        plan.tags.forEach(tag => {
+                            if (tag && tag.toLowerCase().includes(lowerQuery)) {
+                                suggestions.add(tag);
+                            }
+                        });
+                    }
+                    
+                    // Add matching centers
+                    if (plan.center && plan.center.toLowerCase().includes(lowerQuery)) {
+                        suggestions.add(plan.center);
+                    }
+                    
+                    // Add matching grade levels
+                    if (plan.grade && plan.grade.toLowerCase().includes(lowerQuery)) {
+                        suggestions.add(plan.grade);
+                    }
+                });
+                
+                // Convert to array and sort
+                const sortedSuggestions = Array.from(suggestions)
+                    .filter(item => item && item.trim()) // Remove empty items
+                    .sort((a, b) => {
+                        // Prioritize exact matches
+                        const aExact = a.toLowerCase() === lowerQuery;
+                        const bExact = b.toLowerCase() === lowerQuery;
+                        if (aExact && !bExact) return -1;
+                        if (!aExact && bExact) return 1;
+                        
+                        // Then prioritize starts with
+                        const aStarts = a.toLowerCase().startsWith(lowerQuery);
+                        const bStarts = b.toLowerCase().startsWith(lowerQuery);
+                        if (aStarts && !bStarts) return -1;
+                        if (!aStarts && bStarts) return 1;
+                        
+                        // Finally alphabetical
+                        return a.localeCompare(b, 'th');
+                    })
+                    .slice(0, 10); // Limit to 10 suggestions
+                
+                if (sortedSuggestions.length === 0) {
+                    hideSearchDropdown();
+                    return;
+                }
+                
+                const dropdownHTML = sortedSuggestions.map(suggestion => {
+                    const escapedSuggestion = suggestion.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\\/g, '\\\\');
+                    return `
+                        <div class="px-4 py-3 hover:bg-pink-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors" onclick="selectSearchSuggestion('${escapedSuggestion}')">
+                            <div class="flex items-center">
+                                <span class="text-gray-800">${highlightMatch(suggestion, query)}</span>
+                                <span class="ml-auto text-xs text-gray-500">${getItemType(suggestion)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                searchDropdown.innerHTML = dropdownHTML;
+                searchDropdown.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error in showSearchSuggestions:', error);
+                hideSearchDropdown();
+            }
+        }
+        
+        function highlightMatch(text, query) {
+            try {
+                if (!text || !query) return text || '';
+                
+                // Escape special regex characters in query
+                const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                return text.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+            } catch (error) {
+                console.error('Error in highlightMatch:', error);
+                return text || '';
+            }
+        }
+        
+        function getItemType(item) {
+            // Determine if item is a tag, plan name, center, or grade
+            const isGrade = /^[ปม]\.\d+$/.test(item);
+            if (isGrade) return 'ระดับชั้น';
+            
+            const centers = ['ส่วนกลาง', 'วิทยาลัยสงฆ์ลำพูน', 'วิทยาลัยสงฆ์นครลำปาง', 'วิทยาเขตขอนแก่น', 'วิทยาลัยสงฆ์ร้อยเอ็ด', 'วิทยาลัยสงฆ์อุทัยธานี', 'วิทยาลัยสงฆ์ปัตตานี'];
+            if (centers.includes(item)) return 'ศูนย์';
+            
+            // Check if it's a plan name
+            const isPlanName = plans.some(plan => plan.name === item);
+            if (isPlanName) return 'ชื่อแผน';
+            
+            return 'แท็ก';
+        }
+        
+        function selectSearchSuggestion(suggestion) {
+            try {
+                // Unescape the suggestion
+                const unescapedSuggestion = suggestion
+                    .replace(/\\'/g, "'")
+                    .replace(/\\"/g, '"')
+                    .replace(/\\\\/g, '\\');
+                
+                const tagFilterInput = document.getElementById('tagFilter');
+                if (tagFilterInput) {
+                    tagFilterInput.value = unescapedSuggestion;
+                }
+                
+                hideSearchDropdown();
+                currentPage = 1;
+                applyFilters();
+            } catch (error) {
+                console.error('Error in selectSearchSuggestion:', error);
+                hideSearchDropdown();
+            }
+        }
+        
+        function hideSearchDropdown() {
+            try {
+                const searchDropdown = document.getElementById('searchDropdown');
+                if (searchDropdown) {
+                    searchDropdown.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error in hideSearchDropdown:', error);
+            }
+        }
+
+        function highlightDropdownItem(items, index) {
+            // Remove highlight from all items
+            items.forEach(item => {
+                item.classList.remove('bg-pink-100');
+                item.classList.add('hover:bg-pink-50');
+            });
+            
+            // Add highlight to selected item
+            if (items[index]) {
+                items[index].classList.add('bg-pink-100');
+                items[index].classList.remove('hover:bg-pink-50');
+                items[index].scrollIntoView({ block: 'nearest' });
+            }
+        }
+
+        function validateForm() {
+            try {
+                const activityName = document.getElementById('activityName')?.value?.trim() || '';
+                const gradeLevel = document.getElementById('gradeLevel')?.value || '';
+                const centerSelect = document.getElementById('centerSelect')?.value || '';
+                const description = document.getElementById('description')?.value?.trim() || '';
+                
+                // Remove previous error styling
+                document.querySelectorAll('.border-red-500').forEach(el => {
+                    el.classList.remove('border-red-500');
+                    el.classList.add('border-gray-300');
+                });
+                
+                let isValid = true;
+                
+                const fields = [
+                    { id: 'activityName', value: activityName },
+                    { id: 'gradeLevel', value: gradeLevel },
+                    { id: 'centerSelect', value: centerSelect },
+                    { id: 'description', value: description }
+                ];
+                
+                fields.forEach(field => {
+                    const element = document.getElementById(field.id);
+                    if (element && !field.value) {
+                        element.classList.add('border-red-500');
+                        element.classList.remove('border-gray-300');
+                        isValid = false;
+                    }
+                });
+                
+                return isValid;
+            } catch (error) {
+                console.error('Error in validateForm:', error);
+                return false;
+            }
+        }
+
+        async function submitRating() {
+            if (currentRating === 0) {
+                showError('กรุณาเลือกคะแนน!');
+                return;
+            }
+            
+            const reviewerName = document.getElementById('reviewerName').value.trim();
+            const comment = document.getElementById('ratingComment').value.trim();
+            
+            if (!reviewerName) {
+                showError('กรุณากรอกชื่อผู้แสดงความคิดเห็น!', 'reviewerName');
+                return;
+            }
+            
+            if (reviewerName.length < 2) {
+                showError('ชื่อต้องมีอย่างน้อย 2 ตัวอักษร!', 'reviewerName');
+                return;
+            }
+            
+            if (!comment) {
+                showError('กรุณากรอกความคิดเห็น!', 'ratingComment');
+                return;
+            }
+            
+            if (comment.length < 5) {
+                showError('ความคิดเห็นต้องมีอย่างน้อย 5 ตัวอักษร!', 'ratingComment');
+                return;
+            }
+            
+            const plan = plans.find(p => p.id === currentPlanId);
+            if (!plan) {
+                showError('ไม่พบข้อมูลแผนการจัดการเรียนรู้');
+                return;
+            }
+            
+            try {
+                // Show loading alert
+                showLoading('กำลังส่งความคิดเห็นและคะแนน...');
+                
+                // Calculate new rating
+                const totalScore = (plan.rating * plan.votes) + currentRating;
+                plan.votes += 1;
+                plan.rating = Math.round((totalScore / plan.votes) * 10) / 10;
+                
+                // Add new review
+                const newReview = {
+                    name: reviewerName,
+                    rating: currentRating,
+                    comment: comment,
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                };
+                
+                if (!Array.isArray(plan.reviews)) {
+                    plan.reviews = [];
+                }
+                plan.reviews.unshift(newReview); // Add to beginning of array
+                
+                // Update comment count
+                plan.comments = plan.reviews.length;
+                
+                // Try to update in Firebase
+                try {
+                    if (window.firebaseInitialized && window.firebaseDB) {
+                        await updatePlanInFirebase(currentPlanId, plan);
+                    } else {
+                        console.warn('Firebase not available, rating saved locally only');
+                    }
+                } catch (firebaseError) {
+                    console.warn('Firebase rating update failed, continuing locally:', firebaseError);
+                }
+                
+                // Update stats
+                updateStats();
+                
+                // Re-render plans to show updated rating (Real-time update)
+                applyFilters();
+                
+                // Hide loading and close modal
+                hideLoading();
+                closeRatingModal();
+                
+                showSuccess(`ขอบคุณ ${reviewerName} สำหรับการให้คะแนน ${currentRating} ดาว และความคิดเห็นของคุณ!`);
+                
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                hideLoading();
+                showError(error.message || 'เกิดข้อผิดพลาดในการส่งความคิดเห็น กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        async function downloadPlan(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) {
+                showError('ไม่พบข้อมูลที่ต้องการดาวน์โหลด');
+                return;
+            }
+            
+            try {
+                // Update counters
+                plan.downloads += 1;
+                plan.views += 1;
+                
+                // Try to update download count in Firebase (async, don't wait)
+                if (window.firebaseInitialized && window.firebaseDB) {
+                    updatePlanInFirebase(planId, plan).catch(error => {
+                        console.warn('Firebase download count update failed:', error);
+                    });
+                } else {
+                    console.log('Download count updated locally only');
+                }
+                
+                // Update stats immediately
+                updateStats();
+                applyFilters();
+                
+                // Check if there's an uploaded file
+                if (plan.fileData && plan.fileName) {
+                    try {
+                        // Download the original uploaded file
+                        const base64Data = plan.fileData.split(',')[1]; // Remove data:type;base64, prefix
+                        const byteCharacters = atob(base64Data);
+                        const byteNumbers = new Array(byteCharacters.length);
+                        
+                        for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                        }
+                        
+                        const byteArray = new Uint8Array(byteNumbers);
+                        const blob = new Blob([byteArray], { type: plan.fileType });
+                        
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = plan.fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                        
+                        showSuccess(`ดาวน์โหลดไฟล์ "${plan.fileName}" เรียบร้อยแล้ว!`);
+                        return;
+                        
+                    } catch (fileError) {
+                        console.error('Error downloading uploaded file:', fileError);
+                        showError('เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ที่อัปโหลด กำลังสร้างไฟล์ข้อมูลแทน...');
+                        // Fall through to create text file
+                    }
+                }
+                
+                // Create text file with plan information (fallback)
+                const content = `แผนการจัดการเรียนรู้: ${plan.name}
+ระดับชั้น: ${plan.grade}
+สังกัด: ${plan.center}
+
+คำอธิบาย:
+${plan.description}
+
+แท็ก: ${plan.tags.join(', ')}
+
+คะแนน: ${plan.rating}/5 (${plan.votes} โหวต)
+ยอดดาวน์โหลด: ${plan.downloads}
+ยอดเข้าชม: ${plan.views}
+
+${plan.fileName ? `ไฟล์แนบ: ${plan.fileName} (${(plan.fileSize / 1024).toFixed(1)} KB)` : 'ไม่มีไฟล์แนบ'}
+
+รีวิวล่าสุด:
+${plan.reviews && plan.reviews.length > 0 ? 
+    plan.reviews.slice(0, 3).map(review => 
+        `- ${review.name} (${review.rating} ดาว): ${review.comment}`
+    ).join('\n') : 
+    'ยังไม่มีรีวิว'
+}
+
+---
+ดาวน์โหลดเมื่อ: ${new Date().toLocaleString('th-TH')}
+จากระบบคลังความรู้ - แผนการจัดการเรียนรู้`;
+
+                // Create and download text file
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${plan.name.replace(/[^a-zA-Z0-9ก-๙\s]/g, '_').replace(/\s+/g, '_')}_info.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                showSuccess('ดาวน์โหลดข้อมูลแผนการจัดการเรียนรู้เรียบร้อยแล้ว!');
+                
+            } catch (error) {
+                console.error('Error in download process:', error);
+                showError('เกิดข้อผิดพลาดในการดาวน์โหลด กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        async function deletePlan(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) {
+                showError('ไม่พบข้อมูลที่ต้องการลบ');
+                return;
+            }
+            
+            // Show confirmation dialog
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'ยืนยันการลบ',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-4">คุณต้องการลบแผนการจัดการเรียนรู้ <strong>"${plan.name}"</strong> หรือไม่?</p>
+                        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                            <h4 class="font-semibold mb-2">📊 ข้อมูลที่จะถูกลบ:</h4>
+                            <ul class="text-sm space-y-1">
+                                <li>• ยอดเข้าชม: ${plan.views || 0}</li>
+                                <li>• ยอดดาวน์โหลด: ${plan.downloads || 0}</li>
+                                <li>• คะแนน: ${plan.rating || 0} (${plan.votes || 0} โหวต)</li>
+                                <li>• รีวิว: ${plan.comments || 0} รายการ</li>
+                            </ul>
+                        </div>
+                        <p class="text-red-600 font-semibold">⚠️ การดำเนินการนี้ไม่สามารถยกเลิกได้</p>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                customClass: {
+                    popup: 'font-thai',
+                    title: 'font-thai',
+                    content: 'font-thai'
+                }
+            });
+            
+            if (!result.isConfirmed) {
+                return;
+            }
+            
+            try {
+                // Show loading alert
+                showLoading('กำลังลบแผนการจัดการเรียนรู้...');
+                
+                // Try to delete from Firebase first
+                let firebaseDeleteSuccess = false;
+                try {
+                    if (window.firebaseInitialized && window.firebaseDB && !planId.startsWith('local_')) {
+                        await deletePlanFromFirebase(planId);
+                        firebaseDeleteSuccess = true;
+                        console.log('✅ ลบจาก Firebase สำเร็จ');
+                    } else {
+                        console.log('ℹ️ ลบข้อมูลในเครื่องเท่านั้น');
+                    }
+                } catch (firebaseError) {
+                    console.warn('⚠️ Firebase delete failed, continuing with local delete:', firebaseError);
+                    // Continue with local deletion even if Firebase fails
+                }
+                
+                // Remove from local array (always do this)
+                const originalLength = plans.length;
+                plans = plans.filter(p => p.id !== planId);
+                
+                if (plans.length === originalLength) {
+                    throw new Error('ไม่สามารถลบข้อมูลจากระบบได้');
+                }
+                
+                console.log(`✅ ลบข้อมูลสำเร็จ: ${originalLength} -> ${plans.length} รายการ`);
+                
+                // Update filteredPlans if it exists
+                if (Array.isArray(filteredPlans)) {
+                    filteredPlans = filteredPlans.filter(p => p.id !== planId);
+                }
+                
+                // Update stats immediately
+                updateStats();
+                
+                // Close any open modals
+                closePlanDetailsModal();
+                closeEditPlanModal();
+                
+                // Check if current page is empty after deletion
+                const totalPages = Math.ceil(filteredPlans.length / cardsPerPage);
+                if (currentPage > totalPages && totalPages > 0) {
+                    currentPage = totalPages;
+                }
+                
+                // Re-render with current filters
+                applyFilters();
+                
+                // Hide loading and show success message
+                hideLoading();
+                showSuccess(`ลบแผนการจัดการเรียนรู้ "${plan.name}" เรียบร้อยแล้ว!`);
+                
+                // If no plans left, scroll to top
+                if (plans.length === 0) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+                
+            } catch (error) {
+                console.error('❌ Error deleting plan:', error);
+                hideLoading();
+                showError(error.message || 'เกิดข้อผิดพลาดในการลบข้อมูล กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        function applyFilters() {
+            const centerFilter = document.getElementById('centerFilter');
+            const gradeFilter = document.getElementById('gradeFilter');
+            const tagFilter = document.getElementById('tagFilter');
+            
+            const centerValue = centerFilter ? centerFilter.value : '';
+            const gradeValue = gradeFilter ? gradeFilter.value : '';
+            const tagValue = tagFilter ? tagFilter.value.toLowerCase().trim() : '';
+            
+            filteredPlans = [...plans]; // Create a copy and store globally
+            
+            // Apply center filter
+            if (centerValue) {
+                filteredPlans = filteredPlans.filter(plan => plan.center === centerValue);
+            }
+            
+            // Apply grade filter
+            if (gradeValue) {
+                filteredPlans = filteredPlans.filter(plan => plan.grade === gradeValue);
+            }
+            
+            // Apply search filter (tags and name)
+            if (tagValue) {
+                filteredPlans = filteredPlans.filter(plan => {
+                    if (!plan.tags || !Array.isArray(plan.tags)) return false;
+                    return plan.tags.some(tag => tag && tag.toLowerCase().includes(tagValue)) ||
+                           (plan.name && plan.name.toLowerCase().includes(tagValue)) ||
+                           (plan.description && plan.description.toLowerCase().includes(tagValue)) ||
+                           (plan.center && plan.center.toLowerCase().includes(tagValue));
+                });
+            }
+            
+            // Sort by featured first, then by rating, then by views
+            filteredPlans.sort((a, b) => {
+                if (a.featured && !b.featured) return -1;
+                if (!a.featured && b.featured) return 1;
+                if (b.rating !== a.rating) return b.rating - a.rating;
+                return b.views - a.views;
+            });
+            
+            // Reset to first page when applying filters
+            currentPage = 1;
+            renderPlans(filteredPlans);
+        }
+
+        function showFeaturedOnly() {
+            // Clear other filters first
+            const centerFilter = document.getElementById('centerFilter');
+            const gradeFilter = document.getElementById('gradeFilter');
+            const tagFilter = document.getElementById('tagFilter');
+            
+            if (centerFilter) centerFilter.value = '';
+            if (gradeFilter) gradeFilter.value = '';
+            if (tagFilter) tagFilter.value = '';
+            
+            filteredPlans = plans.filter(plan => plan.featured);
+            currentPage = 1;
+            renderPlans(filteredPlans);
+            
+            // Show feedback
+            if (filteredPlans.length === 0) {
+                alert('ไม่พบสื่อแนะนำในขณะนี้');
+            } else {
+                // Scroll to cards section
+                const planCards = document.getElementById('planCards');
+                if (planCards) {
+                    planCards.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        function clearAllFilters() {
+            // Clear all filter inputs
+            const centerFilter = document.getElementById('centerFilter');
+            const gradeFilter = document.getElementById('gradeFilter');
+            const tagFilter = document.getElementById('tagFilter');
+            
+            if (centerFilter) centerFilter.value = '';
+            if (gradeFilter) gradeFilter.value = '';
+            if (tagFilter) tagFilter.value = '';
+            
+            // Hide search dropdown
+            hideSearchDropdown();
+            
+            // Reset filtered plans to all plans
+            filteredPlans = [...plans];
+            
+            // Reset to first page and show all plans
+            currentPage = 1;
+            renderPlans(filteredPlans);
+            
+            // Scroll to cards section
+            const planCards = document.getElementById('planCards');
+            if (planCards) {
+                planCards.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // Function to generate automatic cover image
+        function generateCoverImage(planName, planGrade) {
+            // Select icon based on grade level and subject keywords
+            let icon = '📚'; // default
+            const name = planName.toLowerCase();
+            
+            if (name.includes('คณิต') || name.includes('เลข')) icon = '🔢';
+            else if (name.includes('วิทยา') || name.includes('ธรรมชาติ')) icon = '🔬';
+            else if (name.includes('ภาษา') || name.includes('สื่อสาร')) icon = '💬';
+            else if (name.includes('ประวัติ') || name.includes('สังคม')) icon = '🏛️';
+            else if (name.includes('ศิลป') || name.includes('วาด')) icon = '🎨';
+            else if (name.includes('ดนตรี') || name.includes('เพลง')) icon = '🎵';
+            else if (name.includes('เทคโนโลยี') || name.includes('คอม') || name.includes('เว็บ')) icon = '💻';
+            else if (name.includes('กีฬา') || name.includes('ออกกำลัง')) icon = '⚽';
+            else if (name.includes('การงาน') || name.includes('อาชีพ')) icon = '🔧';
+            
+            // Select color based on grade level
+            let gradientColors = 'from-blue-400 to-blue-600'; // default
+            if (planGrade.includes('ป.')) {
+                // Primary colors - warmer tones
+                const primaryColors = [
+                    'from-pink-400 to-pink-600',
+                    'from-purple-400 to-purple-600',
+                    'from-indigo-400 to-indigo-600',
+                    'from-green-400 to-green-600',
+                    'from-yellow-400 to-yellow-600',
+                    'from-orange-400 to-orange-600'
+                ];
+                gradientColors = primaryColors[Math.abs(planName.length) % primaryColors.length];
+            } else if (planGrade.includes('ม.')) {
+                // Secondary colors - cooler tones
+                const secondaryColors = [
+                    'from-blue-500 to-blue-700',
+                    'from-teal-500 to-teal-700',
+                    'from-cyan-500 to-cyan-700',
+                    'from-slate-500 to-slate-700',
+                    'from-emerald-500 to-emerald-700',
+                    'from-violet-500 to-violet-700'
+                ];
+                gradientColors = secondaryColors[Math.abs(planName.length) % secondaryColors.length];
+            }
+            
+            return { icon, gradientColors };
+        }
+
+        function renderPlans(plansToRender = plans) {
+            // Calculate pagination
+            const totalPages = Math.ceil(plansToRender.length / cardsPerPage);
+            const startIndex = (currentPage - 1) * cardsPerPage;
+            const endIndex = startIndex + cardsPerPage;
+            const currentPlans = plansToRender.slice(startIndex, endIndex);
+            
+            const container = document.getElementById('planCards');
+            
+            if (plansToRender.length === 0) {
+                // Check if this is due to filtering or truly empty database
+                const isFiltered = document.getElementById('centerFilter')?.value || 
+                                 document.getElementById('gradeFilter')?.value || 
+                                 document.getElementById('tagFilter')?.value?.trim();
+                
+                if (isFiltered) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-16">
+                            <div class="text-6xl mb-4">🔍</div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">ไม่พบผลลัพธ์ที่ตรงกับการค้นหา</h3>
+                            <p class="text-gray-600 mb-6">ลองปรับเปลี่ยนเงื่อนไขการค้นหาหรือล้างตัวกรอง</p>
+                            <button onclick="clearAllFilters()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                🔄 ล้างตัวกรอง
+                            </button>
+                        </div>
+                    `;
+                } else if (plans.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-20">
+                            <div class="text-8xl mb-6">📚</div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4">ยังไม่มีแผนการจัดการเรียนรู้</h3>
+                            <p class="text-gray-600 mb-8 text-lg">เริ่มต้นสร้างแผนการจัดการเรียนรู้แรกของคุณ</p>
+                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-200 max-w-md mx-auto mb-8">
+                                <div class="text-4xl mb-4">✨</div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">เริ่มต้นใช้งาน</h4>
+                                <p class="text-sm text-gray-600 mb-4">สร้างแผนการจัดการเรียนรู้ที่น่าสนใจและมีประสิทธิภาพ</p>
+                                ${isAdmin ? `
+                                    <button onclick="openAddPlanModal()" class="bg-gradient-to-r from-pastel-pink-500 to-pastel-pink-600 hover:from-pastel-pink-600 hover:to-pastel-pink-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        ➕ เพิ่มแผนการจัดการเรียนรู้
+                                    </button>
+                                ` : `
+                                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <p class="text-sm text-yellow-800 font-medium">🔐 กรุณาเข้าสู่ระบบผู้ดูแลเพื่อเพิ่มข้อมูล</p>
+                                        <button onclick="openAdminModal()" class="mt-3 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                            👤 เข้าสู่ระบบผู้ดูแล
+                                        </button>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }
+                renderPagination(0, 0);
+                return;
+            }
+            
+            container.innerHTML = currentPlans.map(plan => {
+                const coverImage = generateCoverImage(plan.name, plan.grade);
+                return `
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-pastel-pink-200">
+                    <!-- Auto-Generated Cover Section -->
+                    <div class="relative h-40 bg-gradient-to-br ${coverImage.gradientColors} flex flex-col items-center justify-center text-white overflow-hidden">
+                        <!-- Background Pattern -->
+                        <div class="absolute inset-0 opacity-10">
+                            <div class="absolute top-4 left-4 w-8 h-8 border-2 border-white rounded-full"></div>
+                            <div class="absolute top-8 right-6 w-4 h-4 border border-white rounded-full"></div>
+                            <div class="absolute bottom-6 left-8 w-6 h-6 border border-white rounded-full"></div>
+                            <div class="absolute bottom-4 right-4 w-3 h-3 bg-white rounded-full"></div>
+                        </div>
+                        
+                        <!-- Main Icon -->
+                        <div class="text-6xl mb-2 filter drop-shadow-lg transform hover:scale-110 transition-transform duration-300">${coverImage.icon}</div>
+                        
+                        <!-- Activity Name on Cover -->
+                        <div class="text-center px-4 z-10">
+                            <h4 class="text-sm font-bold text-white drop-shadow-md line-clamp-2 leading-tight">${plan.name}</h4>
+                            <div class="text-xs font-semibold text-white/90 mt-1 bg-white/20 px-2 py-1 rounded-full inline-block">${plan.grade}</div>
+                        </div>
+                        
+                        <!-- Featured Badge -->
+                        ${plan.featured ? '<div class="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 px-3 py-1.5 rounded-full text-xs font-bold flex items-center shadow-md"><span class="mr-1">⭐</span>แนะนำ</div>' : ''}
+                        
+                        <!-- Decorative Bottom Line -->
+                        <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-white/30 to-white/60"></div>
+                    </div>
+                    
+                    <!-- Content Section with Better Spacing -->
+                    <div class="p-6">
+                        <!-- Title with Better Typography -->
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3rem] leading-snug">${plan.name}</h3>
+                        
+                        <!-- Grade and Center with Better Design -->
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm">📚 ${plan.grade}</span>
+                            <span class="text-gray-600 text-sm font-medium truncate ml-2">🏢 ${plan.center}</span>
+                        </div>
+                        
+                        <!-- Description with Better Readability -->
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3 min-h-[3.5rem] leading-relaxed">${plan.description}</p>
+                        
+
+                        
+                        <!-- Tags with Better Styling -->
+                        <div class="flex flex-wrap gap-2 mb-4 min-h-[2rem]">
+                            ${plan.tags.slice(0, 3).map((tag, index) => {
+                                const colors = [
+                                    'bg-gradient-to-r from-pink-100 to-rose-100 text-pink-800 border-pink-200',
+                                    'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border-blue-200',
+                                    'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200',
+                                    'bg-gradient-to-r from-purple-100 to-violet-100 text-purple-800 border-purple-200',
+                                    'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border-yellow-200',
+                                    'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 border-orange-200',
+                                    'bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-800 border-teal-200',
+                                    'bg-gradient-to-r from-indigo-100 to-blue-100 text-indigo-800 border-indigo-200'
+                                ];
+                                const colorClass = colors[(tag.length + index) % colors.length];
+                                return `<span class="${colorClass} px-3 py-1 rounded-full text-xs font-medium shadow-sm border">${tag}</span>`;
+                            }).join('')}
+                            ${plan.tags.length > 3 ? `<span class="text-gray-400 text-sm self-center font-medium">+${plan.tags.length - 3}</span>` : ''}
+                        </div>
+                        
+                        <!-- Rating Display with Enhanced Design -->
+                        <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4 mb-4 shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex text-yellow-400 text-lg">
+                                        ${'⭐'.repeat(Math.floor(plan.rating))}${'☆'.repeat(5 - Math.floor(plan.rating))}
+                                    </div>
+                                    <span class="text-lg font-bold text-gray-900">${plan.rating}</span>
+                                </div>
+                                <span class="text-sm text-gray-600 font-medium">${plan.votes} โหวต</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Button with Better Design -->
+                        <div class="mb-4">
+                            <button onclick="openPlanDetailsModal('${plan.id}')" class="w-full bg-gradient-to-r from-pastel-pink-500 to-pastel-pink-600 hover:from-pastel-pink-600 hover:to-pastel-pink-700 text-white py-3 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02]">
+                                📖 ดูรายละเอียด
+                            </button>
+                            ${isAdmin ? `
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <button onclick="openEditPlanModal('${plan.id}')" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2 rounded-xl text-xs font-semibold transition-all duration-200 shadow-md hover:shadow-lg">✏️ แก้ไข</button>
+                                    <button onclick="deletePlan('${plan.id}')" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-2 rounded-xl text-xs font-semibold transition-all duration-200 shadow-md hover:shadow-lg">🗑 ลบ</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        <!-- Statistics with Enhanced Layout -->
+                        <div class="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
+                            <div class="text-center bg-gray-50 rounded-lg py-2">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-lg mb-1">👁</span>
+                                    <span class="text-sm font-bold text-gray-900">${plan.views}</span>
+                                    <span class="text-xs text-gray-500">ดู</span>
+                                </div>
+                            </div>
+                            <div class="text-center bg-gray-50 rounded-lg py-2">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-lg mb-1">📂</span>
+                                    <span class="text-sm font-bold text-gray-900">${plan.downloads}</span>
+                                    <span class="text-xs text-gray-500">ดาวน์โหลด</span>
+                                </div>
+                            </div>
+                            <div class="text-center bg-gray-50 rounded-lg py-2">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-lg mb-1">💬</span>
+                                    <span class="text-sm font-bold text-gray-900">${plan.comments}</span>
+                                    <span class="text-xs text-gray-500">คอมเมนต์</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            renderPagination(totalPages, plansToRender.length);
+        }
+
+        function renderPagination(totalPages, totalItems) {
+            const paginationContainer = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            if (currentPage > 1) {
+                paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">« ก่อนหน้า</button>`;
+            }
+            
+            // Page numbers
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) {
+                paginationHTML += `<button onclick="changePage(1)" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">1</button>`;
+                if (startPage > 2) {
+                    paginationHTML += `<span class="px-2 py-2 text-sm text-gray-500 font-medium">...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const isActive = i === currentPage;
+                paginationHTML += `<button onclick="changePage(${i})" class="px-4 py-2 text-sm ${isActive ? 'bg-pastel-pink-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-50'} border border-gray-300 rounded-lg transition-colors font-medium">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `<span class="px-2 py-2 text-sm text-gray-500 font-medium">...</span>`;
+                }
+                paginationHTML += `<button onclick="changePage(${totalPages})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">${totalPages}</button>`;
+            }
+            
+            // Next button
+            if (currentPage < totalPages) {
+                paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">ถัดไป »</button>`;
+            }
+            
+            // Add total items info
+            const startItem = (currentPage - 1) * cardsPerPage + 1;
+            const endItem = Math.min(currentPage * cardsPerPage, totalItems);
+            paginationHTML += `<div class="ml-6 px-4 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 font-medium">แสดง ${startItem}-${endItem} จาก ${totalItems} รายการ</div>`;
+            
+            paginationContainer.innerHTML = paginationHTML;
+        }
+        
+        function changePage(page) {
+            currentPage = page;
+            applyFilters();
+            // Scroll to top of cards section
+            const planCards = document.getElementById('planCards');
+            if (planCards) {
+                planCards.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        
+
+
+        function updateStats() {
+            try {
+                // Ensure plans is an array
+                const validPlans = Array.isArray(plans) ? plans : [];
+                
+                // Update total plans
+                const totalPlansElement = document.getElementById('totalPlans');
+                if (totalPlansElement) {
+                    totalPlansElement.textContent = validPlans.length.toLocaleString();
+                }
+                
+                // Update total downloads
+                const totalDownloads = validPlans.reduce((sum, plan) => {
+                    return sum + (typeof plan.downloads === 'number' ? plan.downloads : 0);
+                }, 0);
+                const totalDownloadsElement = document.getElementById('totalDownloads');
+                if (totalDownloadsElement) {
+                    totalDownloadsElement.textContent = totalDownloads.toLocaleString();
+                }
+                
+                // Update average rating
+                const plansWithRatings = validPlans.filter(plan => 
+                    typeof plan.votes === 'number' && plan.votes > 0 && 
+                    typeof plan.rating === 'number' && plan.rating > 0
+                );
+                const avgRating = plansWithRatings.length > 0 
+                    ? plansWithRatings.reduce((sum, plan) => sum + plan.rating, 0) / plansWithRatings.length 
+                    : 0;
+                const avgRatingElement = document.getElementById('avgRating');
+                if (avgRatingElement) {
+                    avgRatingElement.textContent = avgRating.toFixed(1);
+                }
+                
+                // Update total views
+                const totalViews = validPlans.reduce((sum, plan) => {
+                    return sum + (typeof plan.views === 'number' ? plan.views : 0);
+                }, 0);
+                const totalViewsElement = document.getElementById('totalViews');
+                if (totalViewsElement) {
+                    totalViewsElement.textContent = totalViews.toLocaleString();
+                }
+                
+                console.log(`📊 อัปเดตสถิติ: ${validPlans.length} สื่อ, ${totalDownloads} ดาวน์โหลด, ${totalViews} ยอดดู, คะแนนเฉลี่ย ${avgRating.toFixed(1)}`);
+                
+            } catch (error) {
+                console.error('Error updating stats:', error);
+                // Set default values on error
+                const elements = ['totalPlans', 'totalDownloads', 'avgRating', 'totalViews'];
+                elements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = '0';
+                    }
+                });
+            }
+        }
+
+
+
+        function createCenterChart(centerData) {
+            try {
+                const ctx = document.getElementById('centerChart');
+                if (!ctx) return;
+                
+                // Destroy existing chart if it exists
+                if (window.centerChartInstance) {
+                    window.centerChartInstance.destroy();
+                }
+                
+                const chartCtx = ctx.getContext('2d');
+                if (typeof Chart !== 'undefined') {
+                    const labels = centerData.map(center => center.center.replace('วิทยาลัยสงฆ์', '').replace('วิทยาเขต', ''));
+                    const downloads = centerData.map(center => center.downloads);
+                    
+                    window.centerChartInstance = new Chart(chartCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'ดาวน์โหลด',
+                                data: downloads,
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.8)',
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(245, 158, 11, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)',
+                                    'rgba(139, 92, 246, 0.8)',
+                                    'rgba(236, 72, 153, 0.8)',
+                                    'rgba(34, 197, 94, 0.8)'
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(245, 158, 11, 1)',
+                                    'rgba(239, 68, 68, 1)',
+                                    'rgba(139, 92, 246, 1)',
+                                    'rgba(236, 72, 153, 1)',
+                                    'rgba(34, 197, 94, 1)'
+                                ],
+                                borderWidth: 2,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(context) {
+                                            return context[0].label;
+                                        },
+                                        label: function(context) {
+                                            return `ดาวน์โหลด: ${context.parsed.y.toLocaleString()} ครั้ง`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { 
+                                        color: 'rgba(0, 0, 0, 0.05)',
+                                        drawBorder: false
+                                    },
+                                    ticks: { 
+                                        font: { size: 11, weight: '500' },
+                                        color: '#6B7280',
+                                        padding: 8
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { 
+                                        font: { size: 10, weight: '500' },
+                                        color: '#6B7280',
+                                        maxRotation: 45,
+                                        padding: 8
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            }
+                        }
+                    });
+                } else {
+                    ctx.parentElement.innerHTML = '<div class="text-center text-gray-500 py-8">📊 กราฟประสิทธิภาพตามศูนย์</div>';
+                }
+            } catch (error) {
+                console.log('Chart error:', error);
+                const ctx = document.getElementById('centerChart');
+                if (ctx) {
+                    ctx.parentElement.innerHTML = '<div class="text-center text-gray-500 py-8">📊 กราฟประสิทธิภาพตามศูนย์</div>';
+                }
+            }
+        }
+
+        function createGradeChart(grades, gradeStats) {
+            try {
+                const ctx = document.getElementById('gradeChart');
+                if (!ctx) return;
+                
+                // Destroy existing chart if it exists
+                if (window.gradeChartInstance) {
+                    window.gradeChartInstance.destroy();
+                }
+                
+                const chartCtx = ctx.getContext('2d');
+                if (typeof Chart !== 'undefined') {
+                    const data = grades.map(grade => gradeStats[grade]);
+                    const total = data.reduce((sum, val) => sum + val, 0);
+                    
+                    window.gradeChartInstance = new Chart(chartCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: grades,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: [
+                                    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
+                                    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
+                                ],
+                                borderWidth: 3,
+                                borderColor: '#ffffff',
+                                hoverBorderWidth: 4,
+                                hoverBorderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '60%',
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    displayColors: true,
+                                    callbacks: {
+                                        title: function(context) {
+                                            return `ระดับชั้น ${context[0].label}`;
+                                        },
+                                        label: function(context) {
+                                            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                            return `จำนวน: ${context.parsed} สื่อ (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 1200,
+                                easing: 'easeOutQuart'
+                            },
+                            interaction: {
+                                intersect: false
+                            }
+                        }
+                    });
+                } else {
+                    ctx.parentElement.innerHTML = '<div class="text-center text-gray-500 py-8">📊 กราฟการกระจายตามระดับชั้น</div>';
+                }
+            } catch (error) {
+                console.log('Chart error:', error);
+                const ctx = document.getElementById('gradeChart');
+                if (ctx) {
+                    ctx.parentElement.innerHTML = '<div class="text-center text-gray-500 py-8">📊 กราฟการกระจายตามระดับชั้น</div>';
+                }
+            }
+        }
+
+        function initChart() {
+            try {
+                const ctx = document.getElementById('statsChart');
+                if (!ctx) return;
+                
+                const chartCtx = ctx.getContext('2d');
+                if (typeof Chart !== 'undefined') {
+                    new Chart(chartCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
+                            datasets: [{
+                                label: 'ดาวน์โหลด',
+                                data: [120, 190, 300, 500, 200, 300],
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3
+                            }, {
+                                label: 'เข้าชม',
+                                data: [200, 300, 450, 700, 350, 500],
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        usePointStyle: true,
+                                        padding: 15,
+                                        font: { size: 12 }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                    ticks: { font: { size: 11 } }
+                                },
+                                x: {
+                                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                    ticks: { font: { size: 11 } }
+                                }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            }
+                        }
+                    });
+                } else {
+                    throw new Error('Chart.js not available');
+                }
+            } catch (error) {
+                console.log('Chart.js not loaded, displaying fallback');
+                const chartContainer = document.getElementById('statsChart').parentElement.parentElement;
+                chartContainer.innerHTML = `
+                    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+                        <h3 class="text-base font-semibold text-gray-900 mb-3">📊 สถิติการใช้งาน</h3>
+                        <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 text-center border border-gray-200">
+                            <div class="text-2xl mb-2">📈</div>
+                            <p class="text-sm text-gray-600 mb-3">แผนภูมิแสดงสถิติการใช้งาน</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                    <div class="text-lg font-bold text-green-600">2,847</div>
+                                    <div class="text-xs text-gray-600">ดาวน์โหลด</div>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                    <div class="text-lg font-bold text-blue-600">8,924</div>
+                                    <div class="text-xs text-gray-600">เข้าชม</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97b67439b589ee21',t:'MTc1NzI1MDcwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
