@@ -182,13 +182,7 @@
             </div>
         </div>
 
-        <!-- Chart Section - Minimal -->
-        <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
-            <h3 class="text-base font-semibold text-gray-900 mb-3">📊 สถิติการใช้งาน</h3>
-            <div class="h-32">
-                <canvas id="statsChart" width="400" height="128"></canvas>
-            </div>
-        </div>
+
 
         <!-- Filters Section - Top Layout -->
         <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8">
@@ -918,7 +912,6 @@
             
             // Setup event listeners first
             setupEventListeners();
-            initChart();
             
             // Start with empty data
             plans = [];
@@ -2909,52 +2902,138 @@ ${plan.reviews && plan.reviews.length > 0 ?
             }
         }
 
-        // Function to generate automatic cover image
+        // Function to generate automatic cover image with diverse icons
         function generateCoverImage(planName, planGrade) {
-            // Select icon based on grade level and subject keywords
-            let icon = '📚'; // default
             const name = planName.toLowerCase();
             
-            if (name.includes('คณิต') || name.includes('เลข')) icon = '🔢';
-            else if (name.includes('วิทยา') || name.includes('ธรรมชาติ')) icon = '🔬';
-            else if (name.includes('ภาษา') || name.includes('สื่อสาร')) icon = '💬';
-            else if (name.includes('ประวัติ') || name.includes('สังคม')) icon = '🏛️';
-            else if (name.includes('ศิลป') || name.includes('วาด')) icon = '🎨';
-            else if (name.includes('ดนตรี') || name.includes('เพลง')) icon = '🎵';
-            else if (name.includes('เทคโนโลยี') || name.includes('คอม') || name.includes('เว็บ')) icon = '💻';
-            else if (name.includes('กีฬา') || name.includes('ออกกำลัง')) icon = '⚽';
-            else if (name.includes('การงาน') || name.includes('อาชีพ')) icon = '🔧';
+            // Comprehensive icon mapping with multiple categories
+            let icon = '📚'; // default
             
-            // Select color based on grade level
+            // Mathematics & Numbers
+            if (name.includes('คณิต') || name.includes('เลข') || name.includes('ตัวเลข') || name.includes('บวก') || name.includes('ลบ') || name.includes('คูณ') || name.includes('หาร')) {
+                const mathIcons = ['🔢', '➕', '➖', '✖️', '➗', '📐', '📏', '🧮', '📊', '📈'];
+                icon = mathIcons[Math.abs(planName.length) % mathIcons.length];
+            }
+            // Science & Nature
+            else if (name.includes('วิทยา') || name.includes('ธรรมชาติ') || name.includes('ฟิสิกส์') || name.includes('เคมี') || name.includes('ชีววิทยา') || name.includes('โลก') || name.includes('ดาว')) {
+                const scienceIcons = ['🔬', '🧪', '🔭', '🌍', '🌱', '🦋', '🐛', '⚗️', '🧬', '🌟'];
+                icon = scienceIcons[Math.abs(planName.length) % scienceIcons.length];
+            }
+            // Language & Communication
+            else if (name.includes('ภาษา') || name.includes('สื่อสาร') || name.includes('อ่าน') || name.includes('เขียน') || name.includes('พูด') || name.includes('ฟัง') || name.includes('อังกฤษ')) {
+                const langIcons = ['💬', '📝', '📖', '🗣️', '👂', '📚', '✍️', '📄', '📰', '🔤'];
+                icon = langIcons[Math.abs(planName.length) % langIcons.length];
+            }
+            // History & Social Studies
+            else if (name.includes('ประวัติ') || name.includes('สังคม') || name.includes('ศาสตร์') || name.includes('วัฒนธรรม') || name.includes('ประเพณี') || name.includes('ไทย')) {
+                const historyIcons = ['🏛️', '🏰', '👑', '📜', '🗿', '🎭', '🏺', '⚔️', '🛡️', '🏮'];
+                icon = historyIcons[Math.abs(planName.length) % historyIcons.length];
+            }
+            // Arts & Creativity
+            else if (name.includes('ศิลป') || name.includes('วาด') || name.includes('ระบาย') || name.includes('สี') || name.includes('งานฝีมือ') || name.includes('สร้างสรรค์')) {
+                const artIcons = ['🎨', '🖌️', '🖍️', '🎭', '🖼️', '✂️', '📐', '🌈', '🎪', '🎨'];
+                icon = artIcons[Math.abs(planName.length) % artIcons.length];
+            }
+            // Music & Performance
+            else if (name.includes('ดนตรี') || name.includes('เพลง') || name.includes('ร้อง') || name.includes('เต้น') || name.includes('ดนตรี') || name.includes('เครื่องดนตรี')) {
+                const musicIcons = ['🎵', '🎶', '🎤', '🎸', '🥁', '🎹', '🎺', '🎻', '🎼', '🔊'];
+                icon = musicIcons[Math.abs(planName.length) % musicIcons.length];
+            }
+            // Technology & Computer
+            else if (name.includes('เทคโนโลยี') || name.includes('คอม') || name.includes('เว็บ') || name.includes('โปรแกรม') || name.includes('ดิจิทัล') || name.includes('อินเทอร์เน็ต')) {
+                const techIcons = ['💻', '📱', '🖥️', '⌨️', '🖱️', '💾', '📡', '🔌', '🌐', '💿'];
+                icon = techIcons[Math.abs(planName.length) % techIcons.length];
+            }
+            // Sports & Physical Education
+            else if (name.includes('กีฬา') || name.includes('ออกกำลัง') || name.includes('วิ่ง') || name.includes('เตะ') || name.includes('ลูกบอล') || name.includes('แข่ง')) {
+                const sportsIcons = ['⚽', '🏀', '🏐', '🎾', '🏓', '🏸', '🏊', '🏃', '🚴', '🤸'];
+                icon = sportsIcons[Math.abs(planName.length) % sportsIcons.length];
+            }
+            // Career & Vocational
+            else if (name.includes('การงาน') || name.includes('อาชีพ') || name.includes('ช่าง') || name.includes('ทำ') || name.includes('สร้าง') || name.includes('ซ่อม')) {
+                const careerIcons = ['🔧', '🔨', '⚙️', '🛠️', '🏗️', '👷', '🧰', '⚡', '🔩', '📏'];
+                icon = careerIcons[Math.abs(planName.length) % careerIcons.length];
+            }
+            // Health & Life Skills
+            else if (name.includes('สุขภาพ') || name.includes('อนามัย') || name.includes('สุขศึกษา') || name.includes('ชีวิต') || name.includes('พัฒนา')) {
+                const healthIcons = ['🏥', '💊', '🩺', '❤️', '🧘', '🥗', '💪', '🌿', '🍎', '🧠'];
+                icon = healthIcons[Math.abs(planName.length) % healthIcons.length];
+            }
+            // Environment & Agriculture
+            else if (name.includes('สิ่งแวดล้อม') || name.includes('เกษตร') || name.includes('ปลูก') || name.includes('ต้นไม้') || name.includes('สวน') || name.includes('ธรรมชาติ')) {
+                const envIcons = ['🌱', '🌳', '🌾', '🚜', '🌻', '🐝', '🦋', '🌿', '♻️', '🌍'];
+                icon = envIcons[Math.abs(planName.length) % envIcons.length];
+            }
+            // Religion & Ethics
+            else if (name.includes('ศาสนา') || name.includes('ธรรม') || name.includes('จริยธรรม') || name.includes('คุณธรรม') || name.includes('พุทธ')) {
+                const religionIcons = ['🙏', '☸️', '🕯️', '📿', '🏛️', '⛩️', '🕊️', '💫', '🌸', '🧘'];
+                icon = religionIcons[Math.abs(planName.length) % religionIcons.length];
+            }
+            // General Education & Learning
+            else if (name.includes('เรียน') || name.includes('การศึกษา') || name.includes('ความรู้') || name.includes('ทักษะ') || name.includes('พัฒนา')) {
+                const eduIcons = ['📚', '🎓', '📖', '✏️', '📝', '🧠', '💡', '🔍', '📋', '🎯'];
+                icon = eduIcons[Math.abs(planName.length) % eduIcons.length];
+            }
+            // Fun & Games
+            else if (name.includes('เกม') || name.includes('สนุก') || name.includes('เล่น') || name.includes('กิจกรรม') || name.includes('บันเทิง')) {
+                const funIcons = ['🎮', '🎲', '🎪', '🎠', '🎡', '🎢', '🎯', '🎊', '🎉', '🎈'];
+                icon = funIcons[Math.abs(planName.length) % funIcons.length];
+            }
+            // If no specific category matches, use a diverse set based on name characteristics
+            else {
+                const generalIcons = ['📚', '🎯', '⭐', '🌟', '💎', '🔥', '⚡', '🌈', '🎪', '🎭', '🎨', '🎵', '🔬', '💻', '🏆', '🎖️', '🏅', '🎁', '🎀', '💝'];
+                icon = generalIcons[Math.abs(planName.length + planName.charCodeAt(0)) % generalIcons.length];
+            }
+            
+            // Enhanced color selection with more variety
             let gradientColors = 'from-blue-400 to-blue-600'; // default
+            
+            // Create a hash from plan name for consistent color selection
+            const nameHash = planName.split('').reduce((hash, char) => {
+                return hash + char.charCodeAt(0);
+            }, 0);
+            
             if (planGrade.includes('ป.')) {
-                // Primary colors - warmer tones
+                // Primary level - bright, cheerful colors
                 const primaryColors = [
-                    'from-pink-400 to-pink-600',
-                    'from-purple-400 to-purple-600',
-                    'from-indigo-400 to-indigo-600',
-                    'from-green-400 to-green-600',
-                    'from-yellow-400 to-yellow-600',
-                    'from-orange-400 to-orange-600'
+                    'from-pink-400 to-rose-500',
+                    'from-purple-400 to-violet-500',
+                    'from-indigo-400 to-blue-500',
+                    'from-green-400 to-emerald-500',
+                    'from-yellow-400 to-amber-500',
+                    'from-orange-400 to-red-500',
+                    'from-teal-400 to-cyan-500',
+                    'from-lime-400 to-green-500',
+                    'from-fuchsia-400 to-pink-500',
+                    'from-sky-400 to-blue-500'
                 ];
-                gradientColors = primaryColors[Math.abs(planName.length) % primaryColors.length];
+                gradientColors = primaryColors[nameHash % primaryColors.length];
             } else if (planGrade.includes('ม.')) {
-                // Secondary colors - cooler tones
+                // Secondary level - sophisticated, deeper colors
                 const secondaryColors = [
-                    'from-blue-500 to-blue-700',
-                    'from-teal-500 to-teal-700',
-                    'from-cyan-500 to-cyan-700',
-                    'from-slate-500 to-slate-700',
-                    'from-emerald-500 to-emerald-700',
-                    'from-violet-500 to-violet-700'
+                    'from-blue-500 to-indigo-700',
+                    'from-teal-500 to-cyan-700',
+                    'from-emerald-500 to-green-700',
+                    'from-slate-500 to-gray-700',
+                    'from-violet-500 to-purple-700',
+                    'from-rose-500 to-pink-700',
+                    'from-amber-500 to-orange-700',
+                    'from-red-500 to-rose-700',
+                    'from-cyan-500 to-blue-700',
+                    'from-lime-500 to-green-700'
                 ];
-                gradientColors = secondaryColors[Math.abs(planName.length) % secondaryColors.length];
+                gradientColors = secondaryColors[nameHash % secondaryColors.length];
             }
             
             return { icon, gradientColors };
         }
 
-        function renderPlans(plansToRender = plans) {
+        function renderPlans(plansToRender = null) {
+            // Use filteredPlans if no specific plans provided
+            if (plansToRender === null) {
+                plansToRender = filteredPlans.length > 0 ? filteredPlans : plans;
+            }
+            
             // Calculate pagination
             const totalPages = Math.ceil(plansToRender.length / cardsPerPage);
             const startIndex = (currentPage - 1) * cardsPerPage;
@@ -3145,7 +3224,7 @@ ${plan.reviews && plan.reviews.length > 0 ?
             
             // Previous button
             if (currentPage > 1) {
-                paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">« ก่อนหน้า</button>`;
+                paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm font-medium">« ก่อนหน้า</button>`;
             }
             
             // Page numbers
@@ -3153,7 +3232,7 @@ ${plan.reviews && plan.reviews.length > 0 ?
             const endPage = Math.min(totalPages, currentPage + 2);
             
             if (startPage > 1) {
-                paginationHTML += `<button onclick="changePage(1)" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">1</button>`;
+                paginationHTML += `<button onclick="changePage(1)" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm font-medium">1</button>`;
                 if (startPage > 2) {
                     paginationHTML += `<span class="px-2 py-2 text-sm text-gray-500 font-medium">...</span>`;
                 }
@@ -3161,19 +3240,23 @@ ${plan.reviews && plan.reviews.length > 0 ?
             
             for (let i = startPage; i <= endPage; i++) {
                 const isActive = i === currentPage;
-                paginationHTML += `<button onclick="changePage(${i})" class="px-4 py-2 text-sm ${isActive ? 'bg-pastel-pink-500 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-50'} border border-gray-300 rounded-lg transition-colors font-medium">${i}</button>`;
+                if (isActive) {
+                    paginationHTML += `<button onclick="changePage(${i})" class="px-4 py-2 text-sm bg-gradient-to-r from-pastel-pink-500 to-pastel-pink-600 text-white shadow-lg border border-pastel-pink-500 rounded-lg transition-all duration-200 font-medium transform scale-105">${i}</button>`;
+                } else {
+                    paginationHTML += `<button onclick="changePage(${i})" class="px-4 py-2 text-sm bg-white text-gray-700 hover:bg-gradient-to-r hover:from-pastel-pink-50 hover:to-pastel-pink-100 hover:text-pastel-pink-700 border border-gray-300 rounded-lg transition-all duration-200 font-medium transform hover:scale-105">${i}</button>`;
+                }
             }
             
             if (endPage < totalPages) {
                 if (endPage < totalPages - 1) {
                     paginationHTML += `<span class="px-2 py-2 text-sm text-gray-500 font-medium">...</span>`;
                 }
-                paginationHTML += `<button onclick="changePage(${totalPages})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">${totalPages}</button>`;
+                paginationHTML += `<button onclick="changePage(${totalPages})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm font-medium">${totalPages}</button>`;
             }
             
             // Next button
             if (currentPage < totalPages) {
-                paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm font-medium">ถัดไป »</button>`;
+                paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 shadow-sm font-medium">ถัดไป »</button>`;
             }
             
             // Add total items info
@@ -3185,8 +3268,19 @@ ${plan.reviews && plan.reviews.length > 0 ?
         }
         
         function changePage(page) {
+            if (page < 1) return;
+            
+            // Calculate total pages based on current filtered data
+            const currentData = filteredPlans.length > 0 ? filteredPlans : plans;
+            const totalPages = Math.ceil(currentData.length / cardsPerPage);
+            
+            if (page > totalPages) return;
+            
             currentPage = page;
-            applyFilters();
+            
+            // Re-render with current filtered data
+            renderPlans();
+            
             // Scroll to top of cards section
             const planCards = document.getElementById('planCards');
             if (planCards) {
@@ -3237,6 +3331,8 @@ ${plan.reviews && plan.reviews.length > 0 ?
                 if (totalViewsElement) {
                     totalViewsElement.textContent = totalViews.toLocaleString();
                 }
+                
+
                 
                 console.log(`📊 อัปเดตสถิติ: ${validPlans.length} สื่อ, ${totalDownloads} ดาวน์โหลด, ${totalViews} ยอดดู, คะแนนเฉลี่ย ${avgRating.toFixed(1)}`);
                 
@@ -3447,92 +3543,7 @@ ${plan.reviews && plan.reviews.length > 0 ?
             }
         }
 
-        function initChart() {
-            try {
-                const ctx = document.getElementById('statsChart');
-                if (!ctx) return;
-                
-                const chartCtx = ctx.getContext('2d');
-                if (typeof Chart !== 'undefined') {
-                    new Chart(chartCtx, {
-                        type: 'line',
-                        data: {
-                            labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
-                            datasets: [{
-                                label: 'ดาวน์โหลด',
-                                data: [120, 190, 300, 500, 200, 300],
-                                borderColor: '#22c55e',
-                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                pointRadius: 3
-                            }, {
-                                label: 'เข้าชม',
-                                data: [200, 300, 450, 700, 350, 500],
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                tension: 0.4,
-                                fill: true,
-                                pointRadius: 3
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                    labels: {
-                                        usePointStyle: true,
-                                        padding: 15,
-                                        font: { size: 12 }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                                    ticks: { font: { size: 11 } }
-                                },
-                                x: {
-                                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
-                                    ticks: { font: { size: 11 } }
-                                }
-                            },
-                            interaction: {
-                                intersect: false,
-                                mode: 'index'
-                            }
-                        }
-                    });
-                } else {
-                    throw new Error('Chart.js not available');
-                }
-            } catch (error) {
-                console.log('Chart.js not loaded, displaying fallback');
-                const chartContainer = document.getElementById('statsChart').parentElement.parentElement;
-                chartContainer.innerHTML = `
-                    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
-                        <h3 class="text-base font-semibold text-gray-900 mb-3">📊 สถิติการใช้งาน</h3>
-                        <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 text-center border border-gray-200">
-                            <div class="text-2xl mb-2">📈</div>
-                            <p class="text-sm text-gray-600 mb-3">แผนภูมิแสดงสถิติการใช้งาน</p>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <div class="text-lg font-bold text-green-600">2,847</div>
-                                    <div class="text-xs text-gray-600">ดาวน์โหลด</div>
-                                </div>
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <div class="text-lg font-bold text-blue-600">8,924</div>
-                                    <div class="text-xs text-gray-600">เข้าชม</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
+
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97bd3f886657893b',t:'MTc1NzMyMTk0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97c463ea10e6a1c3',t:'MTc1NzM5Njg0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
